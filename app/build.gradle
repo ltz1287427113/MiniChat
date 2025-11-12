@@ -1,0 +1,59 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+android {
+    namespace 'com.example.minichat'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.example.minichat"
+        minSdk 32
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+    // ViewModel 和 LiveData (MVVM 核心)
+    implementation libs.lifecycle.viewmodel
+    implementation libs.lifecycle.livedata
+    // Room (本地数据库)
+    def room_version = "2.6.1"
+    implementation libs.room.runtime
+    annotationProcessor "androidx.room:room-compiler:$room_version" // Java 必须用 annotationProcessor
+    // Retrofit (HTTP 网络请求)
+    implementation libs.retrofit
+    implementation libs.converter.gson // JSON 转换器
+    // OkHttp (WebSocket 会用到)
+    implementation libs.okhttp
+    // RecyclerView (显示列表)
+    implementation libs.recyclerview
+}

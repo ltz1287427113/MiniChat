@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_chat"
+        android:icon="@drawable/ic_chat_unselected"
+        android:title="聊天" />
+
+    <item
+        android:id="@+id/nav_contacts"
+        android:icon="@drawable/ic_contacts_unselected"
+        android:title="通讯录" />
+
+    <item
+        android:id="@+id/nav_discover"
+        android:icon="@drawable/ic_discover_unselected"
+        android:title="发现" />
+
+    <item
+        android:id="@+id/nav_me"
+        android:icon="@drawable/ic_me_unselected"
+        android:title="我" />
+</menu>
