@@ -63,13 +63,13 @@ public class MainActivity extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
                 if (itemId == R.id.nav_chat) {
-                    binding.viewPager.setCurrentItem(0, false); // false 代表切换时不带滑动动画
+                    binding.viewPager.setCurrentItem(0, true); // false 代表切换时不带滑动动画
                 } else if (itemId == R.id.nav_contacts) {
-                    binding.viewPager.setCurrentItem(1, false);
+                    binding.viewPager.setCurrentItem(1, true);
                 } else if (itemId == R.id.nav_discover) {
-                    binding.viewPager.setCurrentItem(2, false);
+                    binding.viewPager.setCurrentItem(2, true);
                 } else if (itemId == R.id.nav_me) {
-                    binding.viewPager.setCurrentItem(3, false);
+                    binding.viewPager.setCurrentItem(3, true);
                 }
                 return true; // true 代表消费了此事件
             }

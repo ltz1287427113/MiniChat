@@ -15,6 +15,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+<!--    app:itemRippleColor="@android:color/transparent"-->
+<!--    app:labelVisibilityMode="labeled"-->
+<!--    app:itemActiveIndicatorStyle="@null"-->
+<!--    去除水波纹-->
+<!--    强制所有标签（“聊天”、“通讯录”等）始终显示-->
+<!--    关闭 Material 3 风格下的“药丸”背景-->
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav_view"
         android:layout_width="0dp"
@@ -23,5 +30,10 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:itemRippleColor="@android:color/transparent"
+        app:labelVisibilityMode="labeled"
+        app:itemActiveIndicatorStyle="@null"
+        app:itemIconTint="@color/bottom_nav_color_selector"
+        app:itemTextColor="@color/bottom_nav_color_selector"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
