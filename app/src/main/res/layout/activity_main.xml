@@ -21,7 +21,9 @@
 <!--    去除水波纹-->
 <!--    强制所有标签（“聊天”、“通讯录”等）始终显示-->
 <!--    关闭 Material 3 风格下的“药丸”背景-->
-
+<!--    app:itemIconTint="@color/bottom_nav_color_selector"-->
+<!--    app:itemTextColor="@color/bottom_nav_color_selector"-->
+<!--    更改了选中的样式-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav_view"
         android:layout_width="0dp"
