@@ -1,5 +1,6 @@
 package com.example.minichat.fragment; // (确保这是你的包名)
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem; // [导入]
@@ -11,17 +12,25 @@ import android.widget.Toast; // [导入]
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.minichat.R;
+import com.example.minichat.activity.ChatDetailActivity;
+import com.example.minichat.adapter.SessionAdapter;
 import com.example.minichat.databinding.FragmentChatBinding; // [导入]
+import com.example.minichat.model.Session;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatFragment extends Fragment {
 
     // 1. 添加 ViewBinding 引用
     private FragmentChatBinding binding;
-
+    // 2. 新的 Adapter
+    private SessionAdapter sessionAdapter;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -34,14 +43,59 @@ public class ChatFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 3. [核心] 找到你的“顶部导航栏”布局，并从它内部找到“菜单按钮”
-        // (我们必须用 findViewById，因为图标在 LinearLayout 内部)
-        binding.topNav.findViewById(R.id.iv_top_menu).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // 4. 当点击时，调用我们下面的方法
-                showTopPopupMenu(v);
-            }
+        // 4. 初始化 RecyclerView
+        setupRecyclerView();
+
+        // 5. 设置顶部弹窗菜单的点击事件
+        // (这是我们上一步做的，完全正确)
+        // 调用弹窗
+        binding.topNav.findViewById(R.id.iv_top_menu).setOnClickListener(this::showTopPopupMenu);
+
+        // 6. (未来) 在这里初始化 ViewModel，并观察(observe)会话列表
+    }
+
+    private void setupRecyclerView() {
+        // 7. [核心] 创建假数据
+        List<Session> fakeSessions = new ArrayList<>();
+        fakeSessions.add(new Session("user_123", "张三", "好的，没问题！", "昨天 10:20"));
+        fakeSessions.add(new Session("user_456", "李四", "[图片]", "周一 08:30"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+        fakeSessions.add(new Session("group_789", "技术交流群", "快来人，出 Bug 了！", "10:15"));
+
+        // 8. [核心] 初始化 SessionAdapter
+        sessionAdapter = new SessionAdapter(fakeSessions);
+        binding.rvSessionList.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.rvSessionList.setAdapter(sessionAdapter);
+
+        // --- [在这里添加新代码] ---
+
+        // 9. 创建一个默认的分割线
+        DividerItemDecoration itemDecoration = new DividerItemDecoration(
+                requireContext(), // 使用 Context
+                LinearLayoutManager.VERTICAL // 指定方向为垂直
+        );
+
+        // 10. 将分割线添加到 RecyclerView
+        binding.rvSessionList.addItemDecoration(itemDecoration);
+
+        // --- [新代码结束] ---
+
+        // 11. [核心] 设置列表项的点击事件
+        sessionAdapter.setOnSessionClickListener(session -> {
+            // ... (你的跳转逻辑)
+            Intent intent = new Intent(getActivity(), ChatDetailActivity.class);
+            intent.putExtra("CHAT_ID", session.getId());
+            intent.putExtra("CHAT_NAME", session.getName());
+            startActivity(intent);
         });
     }
 
