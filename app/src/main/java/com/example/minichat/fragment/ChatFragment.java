@@ -11,6 +11,7 @@ import android.widget.Toast; // [导入]
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -46,10 +47,30 @@ public class ChatFragment extends Fragment {
         // 4. 初始化 RecyclerView
         setupRecyclerView();
 
-        // 5. 设置顶部弹窗菜单的点击事件
-        // (这是我们上一步做的，完全正确)
-        // 调用弹窗
-        binding.topNav.findViewById(R.id.iv_top_menu).setOnClickListener(this::showTopPopupMenu);
+        // 5. [核心修改]
+        // 删除旧的 findViewById 监听器
+        // binding.topNav.findViewById(R.id.iv_top_menu).setOnClickListener(this::showTopPopupMenu);
+
+        // [新代码] 监听 Toolbar 上的菜单项点击
+        binding.topNav.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.menu_search) {
+                Toast.makeText(getContext(), "点击了 搜索", Toast.LENGTH_SHORT).show();
+                return true;
+
+            } else if (itemId == R.id.menu_more) {
+                // [关键] 当“更多”按钮被点击时...
+                // 找到“更多”按钮这个 View，作为弹窗的“锚点”
+                View anchorView = binding.topNav.findViewById(R.id.menu_more);
+
+                // ...[调用你完全相同的旧方法]
+                showTopPopupMenu(anchorView);
+                return true;
+            }
+
+            return false;
+        });
 
         // 6. (未来) 在这里初始化 ViewModel，并观察(observe)会话列表
     }
