@@ -15,6 +15,7 @@
         android:theme="@style/Theme.MiniChat">
         <activity
             android:name=".activity.ChatDetailActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden"
             android:exported="false" />
         <activity
             android:name=".activity.MainActivity"

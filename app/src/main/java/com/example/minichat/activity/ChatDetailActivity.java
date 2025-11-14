@@ -2,12 +2,14 @@ package com.example.minichat.activity;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.minichat.R;
 import com.example.minichat.adapter.MessageAdapter; // [导入]
 import com.example.minichat.data.local.MessageEntity; // [导入]
 import com.example.minichat.databinding.ActivityChatDetailBinding; // [导入]
@@ -44,6 +46,30 @@ public class ChatDetailActivity extends AppCompatActivity {
         }
         // (设置返回按钮)
         binding.toolbar.setNavigationOnClickListener(v -> finish());
+
+        // 7. 初始化 RecyclerView
+        setupRecyclerView();
+
+        // (设置返回按钮)
+        binding.toolbar.setNavigationOnClickListener(v -> finish());
+
+        // --- [在这里添加新代码] ---
+
+        // 11. [新] 设置右侧“三个点”菜单的点击事件
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.menu_chat_settings) {
+                // 当“设置”按钮被点击时
+                Toast.makeText(this, "点击了聊天设置", Toast.LENGTH_SHORT).show();
+                // TODO: 在这里跳转到新的“聊天设置”Activity
+                return true;
+            }
+
+            return false;
+        });
+
+        // --- [新代码结束] ---
 
         // 7. 初始化 RecyclerView
         setupRecyclerView();
