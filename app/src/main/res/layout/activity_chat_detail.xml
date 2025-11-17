@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context=".activity.ChatDetailActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -20,14 +19,24 @@
         app:titleCentered="true"
         app:titleTextColor="@android:color/black" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_message_list"
+    <FrameLayout
+        android:id="@+id/plus_menu_panel"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/input_layout"
+        android:layout_height="250dp"
+        android:background="#F7F7F7"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="这里是功能面板 (相册, 拍摄...)" />
+
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/input_layout"
@@ -36,19 +45,10 @@
         android:background="?android:attr/windowBackground"
         android:orientation="horizontal"
         android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/plus_menu_panel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-<!--android:minHeight="40dp"： (新添加) 确保 EditText 在没内容时，也保持至少 40dp 的高度。-->
-
-<!--android:inputType="textMultiLine"： 替换 text。这是最关键的属性，它告诉 EditText 允许输入多行，并开启垂直滚动功能。-->
-
-<!--android:maxLines="5"： (新添加) 这是“滚动”的关键。它告诉 EditText：“你最多只能长到 5 行的高度。如果超过 5 行，就不要再长高了，开始在内部滚动。”-->
-
-<!--android:scrollbars="vertical"： (新添加) 当内容开始滚动时，显示一个垂直滚动条。-->
-
-<!--android:gravity="top|start"： (新添加) 当 EditText 长高后，让光标和文字从左上角开始，而不是（默认的）垂直居中。-->
         <EditText
             android:id="@+id/et_message_input"
             android:layout_width="0dp"
@@ -82,5 +82,14 @@
             android:backgroundTint="#FFF8FF"
             android:src="@drawable/ic_more" />
     </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_message_list"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/input_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
