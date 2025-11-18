@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.minichat.activity.ProfileActivity;
+import com.example.minichat.activity.SettingsActivity;
 import com.example.minichat.databinding.FragmentMeBinding; // [新导入]
 
 /**
@@ -45,8 +46,9 @@ public class MeFragment extends Fragment {
 
         // 4. [新] 为“设置”按钮 添加点击事件
         binding.settingsBlock.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "点击了 设置", Toast.LENGTH_SHORT).show();
-            // TODO: 在这里跳转到设置页
+            // [注释] 启动我们新创建的 SettingsActivity
+            Intent intent = new Intent(requireActivity(), SettingsActivity.class);
+            startActivity(intent);
         });
     }
 
