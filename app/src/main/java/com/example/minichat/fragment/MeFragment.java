@@ -1,5 +1,6 @@
 package com.example.minichat.fragment; // (确保这是你的包名)
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.minichat.activity.ProfileActivity;
 import com.example.minichat.databinding.FragmentMeBinding; // [新导入]
 
 /**
@@ -34,10 +36,11 @@ public class MeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 3. [新] 为“个人信息”区域 添加点击事件
+        // 3. [修改] 为“个人信息”区域 添加点击事件
         binding.profileBlock.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "点击了 个人信息", Toast.LENGTH_SHORT).show();
-            // TODO: 在这里跳转到个人信息详情页
+            // [注释] 启动我们新创建的 ProfileActivity
+            Intent intent = new Intent(requireActivity(), ProfileActivity.class);
+            startActivity(intent);
         });
 
         // 4. [新] 为“设置”按钮 添加点击事件
