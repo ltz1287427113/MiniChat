@@ -45,52 +45,8 @@ public class ContactsFragment extends Fragment {
         // 4. 设置 RecyclerView
         setupRecyclerView();
 
-        // 5. [核心修改]
-        // 设置 Toolbar 上的点击事件
-        binding.topNav.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-
-            if (itemId == R.id.menu_search) {
-                Toast.makeText(getContext(), "点击了 搜索", Toast.LENGTH_SHORT).show();
-                return true;
-
-            } else if (itemId == R.id.menu_more) {
-                // [关键] 当“更多”按钮被点击时...
-                View anchorView = binding.topNav.findViewById(R.id.menu_more);
-
-                // [新代码] 我们也调用 MenuHelper
-                // 注意：它加载 *相同* 的 R.menu.top_nav_menu
-                // 但它使用 *不同* 的回调方法
-                MenuHelper.showPopupMenuWithIcons(requireActivity(), anchorView, R.menu.top_nav_menu, this::handleMenuClick // [新]
-                );
-                return true;
-            }
-            return false;
-        });
     }
 
-    /**
-     * [注释]
-     * [新方法]
-     * 这是 *ContactsFragment* 自己的菜单点击处理器。
-     * （它和 ChatFragment 的处理器可以做不同的事）
-     */
-    private boolean handleMenuClick(MenuItem item) {
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.menu_scan) { //
-            Toast.makeText(getContext(), "通讯录 扫一扫", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (itemId == R.id.menu_add_friend) { //
-            Toast.makeText(getContext(), "通讯录 添加好友", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (itemId == R.id.menu_create_group) { //
-            Toast.makeText(getContext(), "通讯录 发起群聊", Toast.LENGTH_SHORT).show();
-            return true;
-        } else {
-            return false;
-        }
-    }
 
     /**
      * [注释]

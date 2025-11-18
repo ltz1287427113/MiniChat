@@ -42,51 +42,6 @@ public class DiscoverFragment extends Fragment {
             Toast.makeText(getContext(), "点击了 朋友圈", Toast.LENGTH_SHORT).show();
             // TODO: 在这里跳转到朋友圈 Activity
         });
-
-        // 5. [新] 设置 Toolbar 上的点击事件 (复用 ChatFragment 的逻辑)
-        binding.topNav.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-
-            if (itemId == R.id.menu_search) {
-                Toast.makeText(getContext(), "点击了 搜索", Toast.LENGTH_SHORT).show();
-                return true;
-
-            } else if (itemId == R.id.menu_more) {
-                // [关键] 当“更多”按钮被点击时...
-                View anchorView = binding.topNav.findViewById(R.id.menu_more);
-
-                // [新代码] 调用我们的可复用工具类 MenuHelper
-                MenuHelper.showPopupMenuWithIcons(requireActivity(),       // 1. Context
-                        anchorView,              // 2. 锚点
-                        R.menu.top_nav_menu,     // 3. 加载菜单
-                        this::handleMenuClick    // 4. [新] 点击的回调方法
-                );
-                return true;
-            }
-            return false;
-        });
-    }
-
-    /**
-     * [注释]
-     * [新方法]
-     * 这是 *DiscoverFragment* 自己的菜单点击处理器。
-     */
-    private boolean handleMenuClick(MenuItem item) {
-        int itemId = item.getItemId();
-
-        if (itemId == R.id.menu_scan) { //
-            Toast.makeText(getContext(), "发现页 扫一扫", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (itemId == R.id.menu_add_friend) { //
-            Toast.makeText(getContext(), "发现页 添加好友", Toast.LENGTH_SHORT).show();
-            return true;
-        } else if (itemId == R.id.menu_create_group) { //
-            Toast.makeText(getContext(), "发现页 发起群聊", Toast.LENGTH_SHORT).show();
-            return true;
-        } else {
-            return false;
-        }
     }
 
     // 6. [新] 防止内存泄漏
