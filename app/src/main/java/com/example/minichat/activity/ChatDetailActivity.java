@@ -1,6 +1,7 @@
 package com.example.minichat.activity;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -69,6 +70,20 @@ public class ChatDetailActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.menu_chat_settings) {
                 Toast.makeText(this, "点击了聊天设置", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
+
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.menu_chat_settings) {
+                // [修改] 跳转到聊天信息页面
+                Intent intent = new Intent(this, ChatInfoActivity.class);
+                // 把当前聊天的名字传过去，方便显示
+                intent.putExtra("CHAT_NAME", chatName);
+                // (未来还要传 CHAT_ID，用于清空指定记录)
+                startActivity(intent);
                 return true;
             }
             return false;
