@@ -30,52 +30,111 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <LinearLayout
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_member_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/white"
-                android:orientation="horizontal"
-                android:padding="20dp">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:id="@+id/iv_avatar"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:src="@mipmap/ic_launcher_round" />
-
-                    <TextView
-                        android:id="@+id/tv_name"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:ellipsize="end"
-                        android:maxWidth="60dp"
-                        android:maxLines="1"
-                        android:text="张三"
-                        android:textColor="#666666"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </LinearLayout>
+                android:nestedScrollingEnabled="false"
+                android:padding="10dp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="12dp" />
 
             <LinearLayout
-                android:id="@+id/row_search_history"
+                android:id="@+id/group_options_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:id="@+id/row_group_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:backgroundTint="@android:color/white"
+                    android:clickable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="群聊名称"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tv_group_name_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="未命名"
+                        android:textColor="#999999"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:rotation="180"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="#999999" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1px"
+                    android:layout_marginStart="16dp"
+                    android:background="#EEEEEE" />
+
+                <LinearLayout
+                    android:id="@+id/row_group_qr"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:backgroundTint="@android:color/white"
+                    android:clickable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="群二维码"
+                        android:textColor="@android:color/black"
+                        android:textSize="16sp" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_qr_code"
+                        app:tint="#999999" />
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:rotation="180"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="#999999" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="12dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_search_history"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:backgroundTint="@android:color/white"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
 
                 <TextView
                     android:layout_width="0dp"
@@ -100,46 +159,18 @@
             <LinearLayout
                 android:id="@+id/row_clear_history"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:backgroundTint="@android:color/white"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="清空聊天记录"
-                    android:textColor="@android:color/black"
-                    android:textSize="16sp" />
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:rotation="180"
-                    android:src="@drawable/ic_arrow_back"
-                    app:tint="#999999" />
-            </LinearLayout><View
-                android:layout_width="match_parent"
-                android:layout_height="12dp" />
-
-            <LinearLayout
-                android:id="@+id/row_set_name"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:backgroundTint="@android:color/white"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="备注"
                     android:textColor="@android:color/black"
                     android:textSize="16sp" />
 
@@ -158,14 +189,15 @@
             <LinearLayout
                 android:id="@+id/row_delete_friend"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:background="?android:attr/selectableItemBackground"
                 android:backgroundTint="@android:color/white"
                 android:clickable="true"
-                android:focusable="true"
-                android:padding="16dp">
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
 
                 <TextView
+                    android:id="@+id/tv_delete_friend"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@android:color/white"
@@ -176,8 +208,9 @@
                     android:padding="16dp"
                     android:text="删除好友"
                     android:textColor="#FF0000"
-                    android:textSize="18sp"/>
+                    android:textSize="18sp" />
             </LinearLayout>
+
 
         </LinearLayout>
     </ScrollView>

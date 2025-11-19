@@ -1,15 +1,23 @@
 package com.example.minichat.activity;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.example.minichat.adapter.ChatMemberAdapter;
 import com.example.minichat.databinding.ActivityChatInfoBinding;
+import com.example.minichat.model.ContactItem;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatInfoActivity extends AppCompatActivity {
 
     private ActivityChatInfoBinding binding;
+    private ChatMemberAdapter memberAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,41 +25,77 @@ public class ChatInfoActivity extends AppCompatActivity {
         binding = ActivityChatInfoBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 1. 获取传递过来的聊天对象名字
+        // 1. 获取数据
         String chatName = getIntent().getStringExtra("CHAT_NAME");
         if (chatName == null) chatName = "用户";
 
-        // 2. 初始化 Toolbar
-        setupToolbar();
+        // 2. 判断是否为群聊 (简单判断：如果名字里有"群"或者是"技术交流群")
+        // 在真实项目中，你应该传递一个 boolean isGroup = intent.getBooleanExtra(...)
+        boolean isGroup = chatName.contains("群") || chatName.contains("Group");
 
-        // 3. 初始化视图数据
-        setupViews(chatName);
-
-        // 4. 设置点击事件
-        setupListeners();
+        setupToolbar(chatName, isGroup);
+        setupMemberGrid(chatName, isGroup);
+        setupGroupOptions(chatName, isGroup);
+        setupCommonListeners();
     }
 
-    private void setupToolbar() {
+    private void setupToolbar(String title, boolean isGroup) {
+        binding.toolbar.setTitle(title + (isGroup ? "(10)" : "")); // 群聊显示人数
         binding.toolbar.setNavigationOnClickListener(v -> finish());
     }
 
-    private void setupViews(String name) {
-        // 设置头像下的名字
-        binding.tvName.setText(name);
+    private void setupMemberGrid(String chatName, boolean isGroup) {
+        List<ContactItem> members = new ArrayList<>();
+
+        if (isGroup) {
+            // --- 群聊模式：添加多个假数据 ---
+            members.add(new ContactItem("1", "群主"));
+            members.add(new ContactItem("2", "管理员"));
+            members.add(new ContactItem("3", "小明"));
+            members.add(new ContactItem("4", "小红"));
+            members.add(new ContactItem("5", "小刚"));
+            members.add(new ContactItem("6", "张三"));
+            members.add(new ContactItem("7", "李四"));
+            members.add(new ContactItem("8", "王五"));
+            members.add(new ContactItem("9", "赵六"));
+        } else {
+            // --- 私聊模式：只添加对方 ---
+            members.add(new ContactItem("id", chatName));
+        }
+
+        // 初始化 Adapter
+        memberAdapter = new ChatMemberAdapter(members);
+
+        // 设置 RecyclerView 为 5 列网格
+        binding.rvMemberList.setLayoutManager(new GridLayoutManager(this, 5));
+        binding.rvMemberList.setAdapter(memberAdapter);
     }
 
-    private void setupListeners() {
+    private void setupGroupOptions(String chatName, boolean isGroup) {
+        if (isGroup) {
+            // 如果是群聊，显示群管理选项
+            binding.groupOptionsContainer.setVisibility(View.VISIBLE);
+            binding.tvGroupNameValue.setText(chatName);
+            binding.tvDeleteFriend.setText("退出群聊");
 
-        // 点击 "查找聊天记录"
+            // 点击群聊名称
+            binding.rowGroupName.setOnClickListener(v -> Toast.makeText(this, "修改群聊名称", Toast.LENGTH_SHORT).show());
+
+            // 点击群二维码
+            binding.rowGroupQr.setOnClickListener(v -> Toast.makeText(this, "查看群二维码", Toast.LENGTH_SHORT).show());
+        } else {
+            // 私聊则隐藏
+            binding.groupOptionsContainer.setVisibility(View.GONE);
+        }
+    }
+
+    private void setupCommonListeners() {
         binding.rowSearchHistory.setOnClickListener(v -> {
             Toast.makeText(this, "点击了查找聊天记录", Toast.LENGTH_SHORT).show();
-            // TODO:
         });
 
-        // 点击 "清空聊天记录"
         binding.rowClearHistory.setOnClickListener(v -> {
             Toast.makeText(this, "点击了清空聊天记录", Toast.LENGTH_SHORT).show();
-            // TODO: 调用 ViewModel -> Repository -> DAO 来删除数据库中的消息
         });
     }
 }
