@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F7F7F7"
     android:fitsSystemWindows="true"
     tools:context=".activity.ChatInfoActivity">
 
@@ -29,18 +28,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-
+            <View style="@style/gap"/>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_member_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@android:color/white"
                 android:nestedScrollingEnabled="false"
                 android:padding="10dp" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="12dp" />
+            <View style="@style/gap"/>
 
             <LinearLayout
                 android:id="@+id/group_options_container"
@@ -152,9 +148,7 @@
                     app:tint="#999999" />
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="12dp" />
+            <View style="@style/Line"/>
 
             <LinearLayout
                 android:id="@+id/row_clear_history"
@@ -182,9 +176,7 @@
                     app:tint="#999999" />
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="12dp" />
+            <View style="@style/gap"/>
 
             <LinearLayout
                 android:id="@+id/row_delete_friend"
@@ -200,7 +192,6 @@
                     android:id="@+id/tv_delete_friend"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@android:color/white"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?android:attr/selectableItemBackground"
@@ -211,7 +202,7 @@
                     android:textSize="18sp" />
             </LinearLayout>
 
-
+            <View style="@style/Line"/>
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

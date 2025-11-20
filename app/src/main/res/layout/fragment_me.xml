@@ -16,7 +16,6 @@
             android:id="@+id/profile_block"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
             android:padding="24dp">
 
             <ImageView
@@ -76,12 +75,11 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="8dp" />
-
+        <View style="@style/Line"/>
         <LinearLayout
             android:id="@+id/settings_block"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@android:color/white"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"
@@ -110,7 +108,7 @@
                 android:src="@drawable/ic_arrow_back" />
 
         </LinearLayout>
-
+        <View style="@style/Line"/>
     </LinearLayout>
 
 </ScrollView>
