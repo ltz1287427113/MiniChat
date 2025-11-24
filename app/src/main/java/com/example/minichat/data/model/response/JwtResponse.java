@@ -1,6 +1,6 @@
-package com.example.minichat.data.model;
+package com.example.minichat.data.model.response;
 
-public class LoginData {
+public class JwtResponse {
     private String token;
     private UserLoginResponse userLoginResponse;
 

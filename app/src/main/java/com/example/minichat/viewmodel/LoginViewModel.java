@@ -1,24 +1,29 @@
 package com.example.minichat.viewmodel;
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.minichat.data.model.LoginData;
+import com.example.minichat.data.model.response.JwtResponse;
 import com.example.minichat.data.repository.AuthRepository;
 
-public class LoginViewModel extends ViewModel {
+public class LoginViewModel extends AndroidViewModel {
 
     private AuthRepository repository;
 
     // 这里的泛型变成了 LoginData (因为 API 只返回 Token)
-    private MutableLiveData<AuthRepository.Result<LoginData>> loginResult = new MutableLiveData<>();
+    private MutableLiveData<AuthRepository.Result<JwtResponse>> loginResult = new MutableLiveData<>();
 
-    public LoginViewModel() {
-        repository = new AuthRepository();
+    public LoginViewModel(@NonNull Application application) {
+        super(application);
+        repository = new AuthRepository(application); // 传入 Context
     }
 
-    public LiveData<AuthRepository.Result<LoginData>> getLoginResult() {
+    public LiveData<AuthRepository.Result<JwtResponse>> getLoginResult() {
         return loginResult;
     }
 

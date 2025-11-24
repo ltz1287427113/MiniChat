@@ -1,12 +1,14 @@
 package com.example.minichat.data.repository;
 
+import android.content.Context;
+
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.minichat.data.model.LoginData;
-import com.example.minichat.data.model.ResponseMessage;
-import com.example.minichat.data.model.SendCodeRequest;
-import com.example.minichat.data.model.UserLoginRequest;
-import com.example.minichat.data.model.UserRegisterRequest;
+import com.example.minichat.data.model.response.JwtResponse;
+import com.example.minichat.data.model.response.ResponseMessage;
+import com.example.minichat.data.model.request.SendCodeRequest;
+import com.example.minichat.data.model.request.UserLoginRequest;
+import com.example.minichat.data.model.request.UserRegisterRequest;
 import com.example.minichat.data.remote.ApiClient;
 import com.example.minichat.data.remote.ApiService;
 
@@ -18,8 +20,9 @@ public class AuthRepository {
 
     private ApiService apiService;
 
-    public AuthRepository() {
-        apiService = ApiClient.getApiService();
+    // [修改] 构造函数需要 Context
+    public AuthRepository(Context context) {
+        apiService = ApiClient.getApiService(context);
     }
 
     /**
@@ -29,14 +32,14 @@ public class AuthRepository {
      * @param resultData 用于返回结果 (String 为 Token)
      */
     // [修改] 泛型改为 LoginData
-    public void login(String username, String password, MutableLiveData<Result<LoginData>> resultData) {
+    public void login(String username, String password, MutableLiveData<Result<JwtResponse>> resultData) {
         UserLoginRequest request = new UserLoginRequest(username, password);
 
-        apiService.login(request).enqueue(new Callback<ResponseMessage<LoginData>>() {
+        apiService.login(request).enqueue(new Callback<ResponseMessage<JwtResponse>>() {
             @Override
-            public void onResponse(Call<ResponseMessage<LoginData>> call, Response<ResponseMessage<LoginData>> response) {
+            public void onResponse(Call<ResponseMessage<JwtResponse>> call, Response<ResponseMessage<JwtResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ResponseMessage<LoginData> apiResponse = response.body();
+                    ResponseMessage<JwtResponse> apiResponse = response.body();
 
                     if (apiResponse.isSuccess()) {
                         // [修改] 成功！直接返回整个 LoginData 对象
@@ -50,7 +53,7 @@ public class AuthRepository {
             }
 
             @Override
-            public void onFailure(Call<ResponseMessage<LoginData>> call, Throwable t) {
+            public void onFailure(Call<ResponseMessage<JwtResponse>> call, Throwable t) {
                 resultData.postValue(Result.failure(new Exception("网络连接失败: " + t.getMessage())));
             }
         });

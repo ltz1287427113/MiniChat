@@ -1,4 +1,4 @@
-package com.example.minichat.data.model;
+package com.example.minichat.data.model.response;
 
 public class UserLoginResponse {
     private String userId;

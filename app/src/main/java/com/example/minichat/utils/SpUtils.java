@@ -3,7 +3,7 @@ package com.example.minichat.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.example.minichat.data.model.UserLoginResponse;
+import com.example.minichat.data.model.response.UserLoginResponse;
 import com.google.gson.Gson;
 
 public class SpUtils {

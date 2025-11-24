@@ -1,4 +1,4 @@
-package com.example.minichat.data.model;
+package com.example.minichat.data.model.request;
 
 public class UserRegisterRequest {
     private String username;

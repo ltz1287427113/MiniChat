@@ -1,4 +1,4 @@
-package com.example.minichat.data.model;
+package com.example.minichat.data.model.request;
 
 /**
  * 对应文档: UserLoginRequest

@@ -8,7 +8,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.minichat.data.model.LoginData;
+import com.example.minichat.data.model.response.JwtResponse;
 import com.example.minichat.databinding.ActivityLoginBinding; // [新导入]
 import com.example.minichat.utils.SpUtils;
 import com.example.minichat.viewmodel.LoginViewModel;
@@ -42,16 +42,20 @@ public class LoginActivity extends AppCompatActivity {
             if (result.error != null) {
                 Toast.makeText(this, "登录失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
             } else if (result.data != null) {
-                // [修改] result.data 现在是 LoginData 对象
-                LoginData loginData = result.data;
-                String token = loginData.getToken(); // 从对象里取出 Token
+                // 1. 获取后端返回的完整对象 (JwtResponse)
+                // [注意] 这里假设你的 Repository 返回的是 JwtResponse 类型
+                JwtResponse response = result.data;
+
+                // 2. [核心] 保存 Token
+                SpUtils.saveToken(this, response.getToken());
+
+                // 3. [核心] 保存用户信息 (UserLoginResponse)
+                // 这样 MeFragment 才能拿到头像、昵称等信息
+                SpUtils.saveUser(this, response.getUserLoginResponse());
 
                 Toast.makeText(this, "登录成功！", Toast.LENGTH_SHORT).show();
 
-                // 保存 Token
-                SpUtils.saveToken(this, token);
-
-                // 跳转
+                // 4. 跳转主页
                 startActivity(new Intent(this, MainActivity.class));
                 finish();
             }

@@ -1,4 +1,4 @@
-package com.example.minichat.data.model;
+package com.example.minichat.data.model.response;
 
 /**
  * 根据接口文档定义的通用响应结构

@@ -1,5 +1,6 @@
 package com.example.minichat.activity; // (确保这是你的包名)
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -138,14 +139,18 @@ public class MainActivity extends AppCompatActivity {
     private boolean handleMenuClick(MenuItem item) {
         int itemId = item.getItemId();
 
-        if (itemId == R.id.menu_scan) { //
-            Toast.makeText(this, "点击了 扫一扫", Toast.LENGTH_SHORT).show();
+        if (itemId == R.id.menu_scan) {
+            Toast.makeText(this, "扫一扫", Toast.LENGTH_SHORT).show();
             return true;
-        } else if (itemId == R.id.menu_add_friend) { //
-            Toast.makeText(this, "点击了 添加好友", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.menu_add_friend) {
+
+            // [修改这里] 跳转到 AddFriendActivity
+            Intent intent = new Intent(this, com.example.minichat.activity.AddFriendActivity.class);
+            startActivity(intent);
+
             return true;
-        } else if (itemId == R.id.menu_create_group) { //
-            Toast.makeText(this, "点击了 发起群聊", Toast.LENGTH_SHORT).show();
+        } else if (itemId == R.id.menu_create_group) {
+            Toast.makeText(this, "发起群聊", Toast.LENGTH_SHORT).show();
             return true;
         } else {
             return false;

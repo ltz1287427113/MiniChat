@@ -1,10 +1,10 @@
 package com.example.minichat.data.remote;
 
-import com.example.minichat.data.model.LoginData;
-import com.example.minichat.data.model.ResponseMessage;
-import com.example.minichat.data.model.SendCodeRequest;
-import com.example.minichat.data.model.UserLoginRequest;
-import com.example.minichat.data.model.UserRegisterRequest;
+import com.example.minichat.data.model.response.JwtResponse;
+import com.example.minichat.data.model.response.ResponseMessage;
+import com.example.minichat.data.model.request.SendCodeRequest;
+import com.example.minichat.data.model.request.UserLoginRequest;
+import com.example.minichat.data.model.request.UserRegisterRequest;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -14,7 +14,7 @@ public interface ApiService {
 
     // 1. 登录 (返回 Token)
     @POST("auth/login")
-    Call<ResponseMessage<LoginData>> login(@Body UserLoginRequest request);
+    Call<ResponseMessage<JwtResponse>> login(@Body UserLoginRequest request);
     // 2.注册 (data 为 null)
     @POST("auth/register")
     Call<ResponseMessage<String>> register(@Body UserRegisterRequest request);

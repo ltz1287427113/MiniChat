@@ -13,7 +13,9 @@ import androidx.fragment.app.Fragment;
 
 import com.example.minichat.activity.ProfileActivity;
 import com.example.minichat.activity.SettingsActivity;
+import com.example.minichat.data.model.response.UserLoginResponse;
 import com.example.minichat.databinding.FragmentMeBinding; // [新导入]
+import com.example.minichat.utils.SpUtils;
 
 /**
  * [注释]
@@ -37,7 +39,7 @@ public class MeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 3. [修改] 为“个人信息”区域 添加点击事件
+        // 3.  为“个人信息”区域 添加点击事件
         binding.profileBlock.setOnClickListener(v -> {
             // [注释] 启动我们新创建的 ProfileActivity
             Intent intent = new Intent(requireActivity(), ProfileActivity.class);
@@ -50,6 +52,37 @@ public class MeFragment extends Fragment {
             Intent intent = new Intent(requireActivity(), SettingsActivity.class);
             startActivity(intent);
         });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadUserInfo();
+    }
+
+    /**
+     * [新方法] 从本地存储读取用户信息并显示
+     */
+    private void loadUserInfo() {
+        // 1. 从本地读取
+        UserLoginResponse user = SpUtils.getUser(getContext());
+
+        // 2. [关键] 判空并显示
+        if (user != null) {
+            // 优先显示昵称，没昵称显示用户名
+            String displayName = (user.getNickname() != null && !user.getNickname().isEmpty())
+                    ? user.getNickname()
+                    : user.getUsername();
+
+            binding.tvName.setText(displayName);
+            binding.tvWechatId.setText("微信号: " + user.getUsername());
+
+            // (可选) 如果有头像 URL，用 Glide 加载
+            // if (user.getAvatarUrl() != null) { ... }
+        } else {
+            // 如果 user 为 null，说明 SpUtils.saveUser 没成功，或者被清空了
+            binding.tvName.setText("未登录");
+        }
     }
 
     // 5. [新] 防止内存泄漏

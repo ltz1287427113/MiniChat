@@ -6,7 +6,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.minichat.data.model.response.UserLoginResponse;
 import com.example.minichat.databinding.ActivityProfileBinding;
+import com.example.minichat.utils.SpUtils;
 
 /**
  * [注释]
@@ -28,6 +30,23 @@ public class ProfileActivity extends AppCompatActivity {
 
         // 4. [修改] 为每一行设置点击事件
         setupClickListeners();
+        setupViews();
+    }
+ 
+    private void setupViews() {
+        // 1. 从本地读取
+        UserLoginResponse user = SpUtils.getUser(this);
+
+        if (user != null) {
+            // 2. 设置 UI
+            String displayName = (user.getNickname() != null && !user.getNickname().isEmpty())
+                    ? user.getNickname()
+                    : user.getUsername();
+
+            binding.tvNameValue.setText(displayName);
+            binding.tvWechatIdValue.setText(user.getUsername());
+            binding.tvEmailValue.setText(user.getEmail()); // 显示邮箱
+        }
     }
 
     /**
