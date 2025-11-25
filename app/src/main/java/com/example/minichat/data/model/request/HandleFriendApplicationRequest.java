@@ -10,28 +10,4 @@ public class HandleFriendApplicationRequest {
         this.status = status;
         this.remark = remark;
     }
-
-    public void setApplicationId(int applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public int getApplicationId() {
-        return applicationId;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
 }

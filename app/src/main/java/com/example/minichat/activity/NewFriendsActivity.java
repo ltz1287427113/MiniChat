@@ -2,6 +2,7 @@ package com.example.minichat.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +34,7 @@ public class NewFriendsActivity extends AppCompatActivity {
         // 设置 RecyclerView
         adapter = new NewFriendsAdapter(new ArrayList<>(), item -> {
             // 点击接受按钮
-            viewModel.handleFriendApplication(item.getApplicationId(), "ACCEPTED", item.getRemark());
+            viewModel.handleFriendApplication(item.getApplicationId(), "ACCEPTED", (TextUtils.isEmpty(item.getRemark()) ? item.getNickname() : item.getRemark()));
         });
         binding.rvNewFriends.setLayoutManager(new LinearLayoutManager(this));
         binding.rvNewFriends.setAdapter(adapter);

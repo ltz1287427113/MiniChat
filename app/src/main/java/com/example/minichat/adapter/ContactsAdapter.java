@@ -47,7 +47,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      *
      * @param items 混合了所有类型的列表
      */
-    public ContactsAdapter(List<Object> items, OnItemClickListener listener) {
+    public ContactsAdapter(List<Object> items) {
         this.items = items;
         this.listener = listener;
     }
@@ -176,8 +176,16 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             // (未来：使用 Glide/Coil 加载 item.getAvatarUrl())
 
             itemView.setOnClickListener(v -> {
-                Toast.makeText(v.getContext(), "点击了联系人: " + item.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), "点击了联系人: " + item.getName() + ", 实际显示: " + tvName.getText().toString(), Toast.LENGTH_LONG).show();
             });
+            Toast.makeText(itemView.getContext(), "ContactItem name: " + item.getName(), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // [新] 更新列表数据的方法
+    public void updateList(List<Object> newItems) {
+        this.items.clear();
+        this.items.addAll(newItems);
+        notifyDataSetChanged();
     }
 }

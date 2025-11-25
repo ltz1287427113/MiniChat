@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.minichat.data.model.request.AddFriendRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
+import com.example.minichat.data.model.response.FriendListGroupedResponse;
 import com.example.minichat.data.model.response.ResponseMessage;
 import com.example.minichat.data.model.response.StrangerResponse;
 import com.example.minichat.data.remote.ApiClient;
@@ -26,6 +27,13 @@ public class FriendRepository {
         apiService = ApiClient.getApiService(context);
     }
 
+    /**
+     * 处理好友请求
+     * @param applicationId
+     * @param status
+     * @param remark
+     * @param resultLiveData
+     */
     public void handleFriendApplication(int applicationId, String status, String remark, MutableLiveData<Result<Void>> resultLiveData) {
         HandleFriendApplicationRequest request = new HandleFriendApplicationRequest(applicationId, status, remark);
         apiService.handleFriendApplication(request).enqueue(new Callback<ResponseMessage<Void>>() {
@@ -126,6 +134,30 @@ public class FriendRepository {
 
             @Override
             public void onFailure(Call<ResponseMessage<List<ApplicationResponse>>> call, Throwable t) {
+                resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
+            }
+        });
+    }
+    /**
+     * 获取好友列表
+     */
+    public void getFriendList(MutableLiveData<Result<FriendListGroupedResponse>> resultLiveData) {
+        apiService.getFriends().enqueue(new Callback<ResponseMessage<FriendListGroupedResponse>>() {
+            @Override
+            public void onResponse(Call<ResponseMessage<FriendListGroupedResponse>> call, Response<ResponseMessage<FriendListGroupedResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        resultLiveData.postValue(Result.success(response.body().getData()));
+                    } else {
+                        resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    resultLiveData.postValue(Result.failure(new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<FriendListGroupedResponse>> call, Throwable t) {
                 resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
             }
         });
