@@ -38,7 +38,7 @@ public interface ApiService {
      * 更新Token的接口（按后端实际路径调整）
      * @param authorization 请求头（Bearer + token）
      */
-    @POST("api/auth/updateToken") // 替换成你后端实际的更新token接口路径
+    @POST("auth/update-token") // 替换成你后端实际的更新token接口路径
     Call<ResponseMessage<JwtResponse>> updateToken(
             @Header("Authorization") String authorization // 把token作为Authorization请求头
     );
