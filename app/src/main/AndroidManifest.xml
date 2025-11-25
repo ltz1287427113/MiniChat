@@ -16,6 +16,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MiniChat">
         <activity
+            android:name=".activity.AddFriendSetting"
+            android:exported="false" />
+        <activity
+            android:name=".activity.NewFriendsActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.SearchUserActivity"
             android:exported="false" />
         <activity
@@ -51,6 +57,9 @@
             android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name=".activity.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.AddFriendRequestActivity"
             android:exported="false" />
     </application>
 

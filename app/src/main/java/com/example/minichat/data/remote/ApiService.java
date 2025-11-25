@@ -12,7 +12,6 @@ import com.example.minichat.data.model.response.UserUpdateResponse;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
-import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
@@ -33,13 +32,4 @@ public interface ApiService {
     // 搜索陌生人
     @GET("friendApplication/searchStranger/{usernameOrEmail}")
     Call<ResponseMessage<StrangerResponse>> searchStranger(@Path("usernameOrEmail") String keyword);
-
-    /**
-     * 更新Token的接口（按后端实际路径调整）
-     * @param authorization 请求头（Bearer + token）
-     */
-    @POST("api/auth/updateToken") // 替换成你后端实际的更新token接口路径
-    Call<ResponseMessage<JwtResponse>> updateToken(
-            @Header("Authorization") String authorization // 把token作为Authorization请求头
-    );
 }
