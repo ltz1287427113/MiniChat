@@ -28,4 +28,12 @@ public class UserLoginResponse {
     public String getAvatarUrl() {
         return avatarUrl;
     }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void setAvatarUrl(String avatarUrl) {
+        this.avatarUrl = avatarUrl;
+    }
 }

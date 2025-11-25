@@ -32,6 +32,9 @@ public class TokenInterceptor implements Interceptor {
         // 1. 获取本地保存的 Token
         String token = SpUtils.getToken(context);
 
+        // [添加日志 1] 看看发出去的 Token 到底是不是你改坏的那个？
+        Log.e("TokenCheck", "正在发送 Token: " + token);
+
         Request originalRequest = chain.request();
         Request.Builder builder = originalRequest.newBuilder();
 
@@ -44,9 +47,12 @@ public class TokenInterceptor implements Interceptor {
 
         Request newRequest = builder.build();
 
+
         // 3. 执行请求
         Response response = chain.proceed(newRequest);
 
+        // [添加日志 2] 看看服务器到底返了多少？是 401 吗？
+        Log.e("TokenCheck", "服务器返回状态码: " + response.code());
         // 4. [核心] 检查 Token 是否过期 (HTTP 401)
         if (response.code() == 401) {
             Log.e("TokenInterceptor", "Token 已过期或无效，强制退出");

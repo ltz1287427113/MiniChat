@@ -84,7 +84,7 @@ public class ProfileActivity extends AppCompatActivity {
             // (获取当前显示的邮箱)
             String currentEmail = binding.tvEmailValue.getText().toString();
             // (启动通用的编辑页)
-            launchEditor("修改邮箱", currentEmail);
+            Toast.makeText(this, "邮箱暂不支持修改", Toast.LENGTH_SHORT).show();
         });
 
         // [注释] 点击“微信号”行

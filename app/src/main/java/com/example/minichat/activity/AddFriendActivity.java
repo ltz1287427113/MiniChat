@@ -34,8 +34,9 @@ public class AddFriendActivity extends AppCompatActivity {
     private void setupListeners() {
         // 1. 点击搜索条
         binding.btnSearch.setOnClickListener(v -> {
-            // TODO: 跳转到搜索结果页 (SearchActivity)
-            Toast.makeText(this, "跳转到搜索页面", Toast.LENGTH_SHORT).show();
+            // [修改] 跳转到 SearchUserActivity
+            Intent intent = new Intent(this, SearchUserActivity.class);
+            startActivity(intent);
         });
 
         // 2. 点击 "扫一扫"

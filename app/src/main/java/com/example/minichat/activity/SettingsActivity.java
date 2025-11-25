@@ -7,6 +7,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.minichat.databinding.ActivitySettingsBinding; // [新导入]
+import com.example.minichat.utils.SpUtils;
 
 /**
  * [注释]
@@ -67,17 +68,19 @@ public class SettingsActivity extends AppCompatActivity {
             intent.putExtra("EXTRA_VALUE", ""); // 密码框初始应为空
             startActivity(intent);
         });
-
-        // [注释] 点击“切换账号”行
-        binding.rowSwitchAccount.setOnClickListener(v -> {
-            Toast.makeText(this, "点击了 切换账号", Toast.LENGTH_SHORT).show();
-            // TODO: 在这里启动 LoginActivity
-        });
+        
 
         // [注释] 点击“退出”行
         binding.rowLogout.setOnClickListener(v -> {
-            Toast.makeText(this, "点击了 退出", Toast.LENGTH_SHORT).show();
-            // TODO: 在这里处理退出登录逻辑
+            // 1. 清除本地用户数据 (Token 和 UserInfo)
+            SpUtils.logout(this);
+
+            // 2. 跳转到登录界面
+            Intent intent = new Intent(this, LoginActivity.class);
+            // 3. 清除所有之前的 Activity，确保用户无法通过返回键回到主界面
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish(); // 关闭当前 SettingsActivity
         });
     }
 }

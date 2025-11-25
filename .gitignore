@@ -1,6 +1,8 @@
 *.iml
 .gradle
-/local.properties
+/
+app/src/main/res/xml/network_security_config.xml
+app/src/main/java/com/example/minichat/data/remote/ApiClient.java
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
