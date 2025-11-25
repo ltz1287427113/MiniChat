@@ -150,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
 
             return true;
         } else if (itemId == R.id.menu_create_group) {
+            // TODO 群聊界面
             Toast.makeText(this, "发起群聊", Toast.LENGTH_SHORT).show();
             return true;
         } else {

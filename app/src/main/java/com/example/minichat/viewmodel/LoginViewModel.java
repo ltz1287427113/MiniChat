@@ -18,6 +18,8 @@ public class LoginViewModel extends AndroidViewModel {
     // 这里的泛型变成了 LoginData (因为 API 只返回 Token)
     private MutableLiveData<AuthRepository.Result<JwtResponse>> loginResult = new MutableLiveData<>();
 
+    private MutableLiveData<AuthRepository.Result<JwtResponse>> updateTokenResult = new MutableLiveData<>();
+
     public LoginViewModel(@NonNull Application application) {
         super(application);
         repository = new AuthRepository(application); // 传入 Context
@@ -29,5 +31,13 @@ public class LoginViewModel extends AndroidViewModel {
 
     public void login(String username, String password) {
         repository.login(username, password, loginResult);
+    }
+
+    public LiveData<AuthRepository.Result<JwtResponse>> getUpdateTokenResult() {
+        return updateTokenResult;
+    }
+
+    public void updateToken(String token) {
+        repository.updateToken(token, updateTokenResult);
     }
 }

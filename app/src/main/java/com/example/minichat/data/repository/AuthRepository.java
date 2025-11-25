@@ -113,6 +113,32 @@ public class AuthRepository {
         });
     }
 
+    public void updateToken(String token, MutableLiveData<Result<JwtResponse>> updateTokenResult) {
+        token = "Bearer " + token;
+        apiService.updateToken(token).enqueue(new Callback<ResponseMessage<JwtResponse>>() {
+            @Override
+            public void onResponse(Call<ResponseMessage<JwtResponse>> call, Response<ResponseMessage<JwtResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    ResponseMessage<JwtResponse> apiResponse = response.body();
+
+                    if (apiResponse.isSuccess()) {
+                        // [修改] 成功！直接返回整个 LoginData 对象
+                        updateTokenResult.postValue(Result.success(apiResponse.getData()));
+                    } else {
+                        updateTokenResult.postValue(Result.failure(new Exception(apiResponse.getMessage())));
+                    }
+                } else {
+                    updateTokenResult.postValue(Result.failure(new Exception("服务器错误: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<JwtResponse>> call, Throwable t) {
+                updateTokenResult.postValue(Result.failure(new Exception("网络连接失败: " + t.getMessage())));
+            }
+        });
+    }
+
     // 结果包装类 (保持不变)
     public static class Result<T> {
         public T data;

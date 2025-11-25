@@ -22,8 +22,46 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        binding = ActivityLoginBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // 1. 初始化 ViewModel
+        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
+
         // [核心代码] 检查是否已经登录
         if (SpUtils.isLoggedIn(this)) {
+
+            // 如果已经登陆了，那么就调取更新token的接口，获取最新token和用户信息
+            // todo: 这里需要调用网络接口，获取最新token和用户信息
+
+            viewModel.getUpdateTokenResult().observe(this, result -> {
+                if (result.error != null) {
+                    Toast.makeText(this, "更新失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
+                } else if (result.data != null) {
+                    // 1. 获取后端返回的完整对象 (JwtResponse)
+                    // [注意] 这里假设你的 Repository 返回的是 JwtResponse 类型
+                    JwtResponse response = result.data;
+
+                    // 2. [核心] 保存 Token
+                    SpUtils.saveToken(this, response.getToken());
+
+                    // 3. [核心] 保存用户信息 (UserLoginResponse)
+                    // 这样 MeFragment 才能拿到头像、昵称等信息
+                    SpUtils.saveUser(this, response.getUserLoginResponse());
+
+                    Toast.makeText(this, "登录成功！", Toast.LENGTH_SHORT).show();
+
+                    // 4. 跳转主页
+                    startActivity(new Intent(this, MainActivity.class));
+                    finish();
+                }
+            });
+
+            // 获取下老token
+            String token = SpUtils.getToken(this);
+
+            viewModel.updateToken(token); // 调用 ViewModel 的更新 token 方法
+
             // 如果有 Token，直接跳转主页，跳过登录页
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
@@ -31,11 +69,6 @@ public class LoginActivity extends AppCompatActivity {
             return;   // 必须 return，不执行后面的 setContentView
         }
 
-        binding = ActivityLoginBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
-
-        // 1. 初始化 ViewModel
-        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         // 2. [核心] 观察登录结果
         viewModel.getLoginResult().observe(this, result -> {
