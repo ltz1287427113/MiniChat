@@ -26,6 +26,12 @@ import java.util.List;
  */
 public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    public interface OnItemClickListener {
+        void onItemClick(Object item);
+    }
+
+    private static OnItemClickListener listener;
+
     // [注释]
     // 我们用常量来定义视图类型
     private static final int VIEW_TYPE_FUNCTION = 1;
@@ -41,8 +47,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      *
      * @param items 混合了所有类型的列表
      */
-    public ContactsAdapter(List<Object> items) {
+    public ContactsAdapter(List<Object> items, OnItemClickListener listener) {
         this.items = items;
+        this.listener = listener;
     }
 
     /**
@@ -131,7 +138,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             ivIcon.setImageResource(item.getIconResId());
 
             itemView.setOnClickListener(v -> {
-                Toast.makeText(v.getContext(), "点击了: " + item.getName(), Toast.LENGTH_SHORT).show();
+                if (listener != null) {
+                    listener.onItemClick(item);
+                }
             });
         }
     }

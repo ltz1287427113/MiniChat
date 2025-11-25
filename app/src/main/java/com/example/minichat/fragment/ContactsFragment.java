@@ -1,5 +1,6 @@
 package com.example.minichat.fragment; // (确保这是你的包名)
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.MenuItem; // [新导入]
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.minichat.R;
+import com.example.minichat.activity.NewFriendsActivity;
 import com.example.minichat.adapter.ContactsAdapter;
 import com.example.minichat.databinding.FragmentContactsBinding;
 import com.example.minichat.model.ContactItem;
@@ -55,7 +57,17 @@ public class ContactsFragment extends Fragment {
     private void setupRecyclerView() {
         // ... (此方法完全不变) ...
         List<Object> items = buildSortedList();
-        adapter = new ContactsAdapter(items);
+        adapter = new ContactsAdapter(items, item -> {
+            if (item instanceof FunctionItem) {
+                FunctionItem functionItem = (FunctionItem) item;
+                if ("新的朋友".equals(functionItem.getName())) {
+                    Intent intent = new Intent(requireActivity(), NewFriendsActivity.class);
+                    startActivity(intent);
+                } else if ("群聊".equals(functionItem.getName())) {
+                    Toast.makeText(requireContext(), "点击了群聊", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         binding.rvContactsList.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvContactsList.setAdapter(adapter);
         binding.rvContactsList.addItemDecoration(new DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL));
