@@ -1,11 +1,11 @@
 package com.example.minichat.adapter; // (确保这是你的包名)
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -47,7 +47,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
      *
      * @param items 混合了所有类型的列表
      */
-    public ContactsAdapter(List<Object> items) {
+    public ContactsAdapter(List<Object> items, OnItemClickListener listener) {
         this.items = items;
         this.listener = listener;
     }
@@ -82,7 +82,8 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case VIEW_TYPE_FUNCTION:
                 // [注释] 加载 item_contact_function.xml
                 View funcView = inflater.inflate(R.layout.item_contact_function, parent, false);
-                return new FunctionViewHolder(funcView);
+
+                return new FunctionViewHolder(funcView, listener);
             case VIEW_TYPE_HEADER:
                 // [注释] 加载我们新创建的 item_contact_header.xml
                 View headerView = inflater.inflate(R.layout.item_contact_header, parent, false);
@@ -90,7 +91,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case VIEW_TYPE_CONTACT:
                 // [注释] 加载 item_contact_person.xml
                 View contactView = inflater.inflate(R.layout.item_contact_person, parent, false);
-                return new ContactViewHolder(contactView);
+                return new ContactViewHolder(contactView, listener);
         }
         return null; // 不应该发生
     }
@@ -126,17 +127,18 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     static class FunctionViewHolder extends RecyclerView.ViewHolder {
         ImageView ivIcon;
         TextView tvName;
+        private OnItemClickListener listener;
 
-        public FunctionViewHolder(@NonNull View itemView) {
+        public FunctionViewHolder(@NonNull View itemView, OnItemClickListener listener) {
             super(itemView);
+            this.listener = listener;
             ivIcon = itemView.findViewById(R.id.iv_function_icon);
             tvName = itemView.findViewById(R.id.tv_function_name);
         }
 
         void bind(FunctionItem item) {
             tvName.setText(item.getName());
-            ivIcon.setImageResource(item.getIconResId());
-
+            Log.d("ContactsAdapter", "FunctionViewHolder bind called for: " + item.getName());
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onItemClick(item);
@@ -165,20 +167,28 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         ImageView ivAvatar;
         TextView tvName;
 
-        public ContactViewHolder(@NonNull View itemView) {
+        public ContactViewHolder(@NonNull View itemView, OnItemClickListener listener) {
             super(itemView);
             ivAvatar = itemView.findViewById(R.id.iv_contact_avatar);
             tvName = itemView.findViewById(R.id.tv_contact_name);
         }
 
         void bind(ContactItem item) {
-            tvName.setText(item.getName());
-            // (未来：使用 Glide/Coil 加载 item.getAvatarUrl())
+            // [修改] 使用 getDisplayName()
+            tvName.setText(item.getDisplayName());
+
+            // [新] 加载头像
+            // 如果你有引入 Glide，可以这样写：
+            // Glide.with(itemView).load(item.getAvatarUrl()).into(ivAvatar);
+
+            // 暂时用默认头像
+            ivAvatar.setImageResource(R.mipmap.ic_launcher_round);
 
             itemView.setOnClickListener(v -> {
-                Toast.makeText(v.getContext(), "点击了联系人: " + item.getName() + ", 实际显示: " + tvName.getText().toString(), Toast.LENGTH_LONG).show();
+                if (listener != null) {
+                    listener.onItemClick(item);
+                }
             });
-            Toast.makeText(itemView.getContext(), "ContactItem name: " + item.getName(), Toast.LENGTH_SHORT).show();
         }
     }
 

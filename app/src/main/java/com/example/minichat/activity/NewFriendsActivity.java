@@ -34,7 +34,10 @@ public class NewFriendsActivity extends AppCompatActivity {
         // 设置 RecyclerView
         adapter = new NewFriendsAdapter(new ArrayList<>(), item -> {
             // 点击接受按钮
-            viewModel.handleFriendApplication(item.getApplicationId(), "ACCEPTED", (TextUtils.isEmpty(item.getRemark()) ? item.getNickname() : item.getRemark()));
+            Intent intent = new Intent(NewFriendsActivity.this, AcceptFriendActivity.class);
+            intent.putExtra("APPLICATION_ID", item.getApplicationId());
+            intent.putExtra("DEFAULT_REMARK", item.getNickname());
+            startActivity(intent);
         });
         binding.rvNewFriends.setLayoutManager(new LinearLayoutManager(this));
         binding.rvNewFriends.setAdapter(adapter);
@@ -64,6 +67,13 @@ public class NewFriendsActivity extends AppCompatActivity {
         });
 
         // 加载数据
+        viewModel.loadApplications();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 刷新列表
         viewModel.loadApplications();
     }
 }

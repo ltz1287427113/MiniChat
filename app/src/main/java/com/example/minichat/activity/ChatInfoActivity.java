@@ -7,6 +7,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.example.minichat.R;
 import com.example.minichat.adapter.ChatMemberAdapter;
 import com.example.minichat.databinding.ActivityChatInfoBinding;
 import com.example.minichat.model.ContactItem;
@@ -44,23 +45,23 @@ public class ChatInfoActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(v -> finish());
     }
 
-    private void setupMemberGrid(String chatName, boolean isGroup) {
+    private void setupMemberGrid(String remark, boolean isGroup) {
         List<ContactItem> members = new ArrayList<>();
 
         if (isGroup) {
             // --- 群聊模式：添加多个假数据 ---
-            members.add(new ContactItem("1", "群主"));
-            members.add(new ContactItem("2", "管理员"));
-            members.add(new ContactItem("3", "小明"));
-            members.add(new ContactItem("4", "小红"));
-            members.add(new ContactItem("5", "小刚"));
-            members.add(new ContactItem("6", "张三"));
-            members.add(new ContactItem("7", "李四"));
-            members.add(new ContactItem("8", "王五"));
-            members.add(new ContactItem("9", "赵六"));
+            members.add(new ContactItem("1", "群主", null));
+            members.add(new ContactItem("2", "管理员",null));
+            members.add(new ContactItem("3", "小明",null));
+            members.add(new ContactItem("4", "小红",null));
+            members.add(new ContactItem("5", "小刚",null));
+            members.add(new ContactItem("6", "张三",null));
+            members.add(new ContactItem("7", "李四",null));
+            members.add(new ContactItem("8", "王五",null));
+            members.add(new ContactItem("9", "赵六",null));
         } else {
             // --- 私聊模式：只添加对方 ---
-            members.add(new ContactItem("id", chatName));
+            members.add(new ContactItem("id", remark,null));
         }
 
         // 初始化 Adapter

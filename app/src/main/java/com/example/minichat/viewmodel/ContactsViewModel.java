@@ -1,6 +1,8 @@
 package com.example.minichat.viewmodel;
 
 import android.app.Application;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -58,28 +60,45 @@ public class ContactsViewModel extends AndroidViewModel {
     private List<Object> transformData(FriendListGroupedResponse response) {
         List<Object> list = new ArrayList<>();
 
-        // 1. 先添加顶部的“功能区” (写死)
-        list.add(new FunctionItem("新的朋友", R.drawable.ic_addfriend));
-        list.add(new FunctionItem("群聊", R.drawable.ic_group_chat));
+        // 如果 response 为空，则只返回功能区，避免 NullPointerException
+        if (response == null) {
+            list.add(new FunctionItem("新的朋友", R.drawable.ic_addfriend));
+            list.add(new FunctionItem("群聊", R.drawable.ic_group_chat));
+            return list;
+        }
 
-        // 2. 遍历后端返回的分组
-        if (response.getGroups() != null) {
+        
+
+        // 2. 遍历分组
+        if (response.getGroups() != null && !response.getGroups().isEmpty()) {
+            Log.d("ContactsViewModel", "Groups found: " + response.getGroups().size());
             for (FriendGroupDTO group : response.getGroups()) {
-                // a. 添加字母标题 (HeaderItem)
+                // 添加字母标题
                 list.add(new HeaderItem(group.getInitial()));
 
-                // b. 添加该组下的所有联系人 (ContactItem)
-                if (group.getFriends() != null) {
+                // 添加联系人
+                if (group.getFriends() != null && !group.getFriends().isEmpty()) {
+                    Log.d("ContactsViewModel", "Friends in group " + group.getInitial() + ": " + group.getFriends().size());
                     for (FriendDTO friend : group.getFriends()) {
+                        // [核心修改] 使用新的构造函数
                         list.add(new ContactItem(
-                                friend.getFriendUsername(), // id
-                                friend.getFriendRemark() != null ? friend.getFriendRemark() : friend.getFriendUsername()    // name
-                                // friend.getFriendAvatarUrl() // avatar (未来支持)
+                                friend.getFriendUsername(), // username
+                                friend.getFriendRemark(),   // displayName
+                                friend.getFriendAvatarUrl() // avatarUrl
                         ));
                     }
+                } else {
+                    Log.d("ContactsViewModel", "No friends in group " + group.getInitial());
                 }
             }
+        } else {
+            Log.d("ContactsViewModel", "No groups found in response.");
         }
+
+        // [新] 无论是否有好友，都添加功能区
+        list.add(0, new FunctionItem("新的朋友", R.drawable.ic_addfriend));
+        list.add(1, new FunctionItem("群聊", R.drawable.ic_group_chat));
+
         return list;
     }
 }

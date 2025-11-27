@@ -6,15 +6,15 @@ package com.example.minichat.model;
  */
 public class FunctionItem {
 
-    private String name;
+    private String Nikename;
     private int iconResId;
 
     public FunctionItem(String name, int iconResId) {
-        this.name = name;
+        this.Nikename = name;
         this.iconResId = iconResId;
     }
 
     // Getters
-    public String getName() { return name; }
+    public String getName() { return Nikename; }
     public int getIconResId() { return iconResId; }
 }

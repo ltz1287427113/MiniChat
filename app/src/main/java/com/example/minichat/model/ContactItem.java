@@ -1,21 +1,23 @@
 package com.example.minichat.model;
 
 /**
- * [注释]
- * 这是一个“数据模型”，用于表示一个联系人。
+ * [升级]
+ * 现在的 ContactItem 包含了头像 URL，
+ * 并且字段名改为了 username 和 displayName，更符合业务。
  */
 public class ContactItem {
 
-    private String id;
-    private String name;
-    private String avatarUrl; // (未来使用)
+    private String username;    // 对应后端的 friendUsername
+    private String displayName; // 对应后端的 friendRemark
+    private String avatarUrl;   // 对应后端的 friendAvatarUrl
 
-    public ContactItem(String id, String name) {
-        this.id = id;
-        this.name = name;
+    public ContactItem(String username, String displayName, String avatarUrl) {
+        this.username = username;
+        this.displayName = displayName;
+        this.avatarUrl = avatarUrl;
     }
 
-    // Getters
-    public String getId() { return id; }
-    public String getName() { return name; }
+    public String getUsername() { return username; }
+    public String getDisplayName() { return displayName; }
+    public String getAvatarUrl() { return avatarUrl; }
 }

@@ -1,10 +1,13 @@
 package com.example.minichat.data.repository;
 
 import android.content.Context;
+import android.util.Log;
+
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.minichat.data.model.request.AddFriendRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
+import com.example.minichat.data.model.response.FriendDetailResponse;
 import com.example.minichat.data.model.response.FriendListGroupedResponse;
 import com.example.minichat.data.model.response.ResponseMessage;
 import com.example.minichat.data.model.response.StrangerResponse;
@@ -34,7 +37,7 @@ public class FriendRepository {
      * @param remark
      * @param resultLiveData
      */
-    public void handleFriendApplication(int applicationId, String status, String remark, MutableLiveData<Result<Void>> resultLiveData) {
+    public void handleFriendApplication(int applicationId, String status, String remark, MutableLiveData<Result<String>> resultLiveData) {
         HandleFriendApplicationRequest request = new HandleFriendApplicationRequest(applicationId, status, remark);
         apiService.handleFriendApplication(request).enqueue(new Callback<ResponseMessage<Void>>() {
             @Override
@@ -147,6 +150,34 @@ public class FriendRepository {
             public void onResponse(Call<ResponseMessage<FriendListGroupedResponse>> call, Response<ResponseMessage<FriendListGroupedResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     if (response.body().isSuccess()) {
+                        Log.d("FriendRepository", "getFriendList success: " + response.body().getData());
+                        resultLiveData.postValue(Result.success(response.body().getData()));
+                    } else {
+                        Log.e("FriendRepository", "getFriendList business error: " + response.body().getMessage());
+                        resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    Log.e("FriendRepository", "getFriendList request failed: " + response.code());
+                    resultLiveData.postValue(Result.failure(new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<FriendListGroupedResponse>> call, Throwable t) {
+                Log.e("FriendRepository", "getFriendList network error: " + t.getMessage(), t);
+                resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
+            }
+        });
+    }
+    /**
+     * 获取好友详情
+     */
+    public void getFriendDetail(String username, MutableLiveData<Result<FriendDetailResponse>> resultLiveData) {
+        apiService.getFriendDetail(username).enqueue(new Callback<ResponseMessage<FriendDetailResponse>>() {
+            @Override
+            public void onResponse(Call<ResponseMessage<FriendDetailResponse>> call, Response<ResponseMessage<FriendDetailResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
                         resultLiveData.postValue(Result.success(response.body().getData()));
                     } else {
                         resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
@@ -157,7 +188,7 @@ public class FriendRepository {
             }
 
             @Override
-            public void onFailure(Call<ResponseMessage<FriendListGroupedResponse>> call, Throwable t) {
+            public void onFailure(Call<ResponseMessage<FriendDetailResponse>> call, Throwable t) {
                 resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
             }
         });

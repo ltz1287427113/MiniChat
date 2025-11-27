@@ -35,8 +35,4 @@ public class NewFriendsViewModel extends AndroidViewModel {
     public void loadApplications() {
         repository.getFriendApplications(applicationsResult);
     }
-
-    public void handleFriendApplication(int applicationId, String status, String remark) {
-        repository.handleFriendApplication(applicationId, status, remark , handleApplicationResult);
-    }
 }

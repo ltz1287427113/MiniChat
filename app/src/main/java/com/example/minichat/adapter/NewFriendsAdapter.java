@@ -63,16 +63,22 @@ public class NewFriendsAdapter extends RecyclerView.Adapter<NewFriendsAdapter.Vi
             holder.btnAccept.setVisibility(View.GONE);
         } else {
             // PENDING 状态
-            // 这里需要判断：是我申请别人（等待验证），还是别人申请我（显示接受按钮）
-            // 暂时简单处理：显示接受按钮 (你需要结合业务逻辑判断，比如判断 username 是否是自己)
-            holder.tvStatus.setVisibility(View.GONE);
-            holder.btnAccept.setVisibility(View.VISIBLE);
+            if (item.isApplicantIsMe()) {
+                // 我申请别人（等待验证）
+                holder.tvStatus.setVisibility(View.VISIBLE);
+                holder.tvStatus.setText("等待验证");
+                holder.btnAccept.setVisibility(View.GONE);
+            } else {
+                // 别人申请我（显示接受按钮）
+                holder.tvStatus.setVisibility(View.GONE);
+                holder.btnAccept.setVisibility(View.VISIBLE);
 
-            holder.btnAccept.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onAcceptButtonClick(item);
-                }
-            });
+                holder.btnAccept.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onAcceptButtonClick(item);
+                    }
+                });
+            }
         }
     }
 

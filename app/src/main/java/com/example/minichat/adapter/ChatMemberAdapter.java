@@ -48,10 +48,10 @@ public class ChatMemberAdapter extends RecyclerView.Adapter<ChatMemberAdapter.Me
             ContactItem member = members.get(position);
             holder.ivAvatar.setImageResource(R.mipmap.ic_launcher_round); // 占位头像
             holder.ivAvatar.setBackground(null); // 清除背景
-            holder.tvName.setText(member.getName());
+            holder.tvName.setText(member.getDisplayName());
 
             holder.itemView.setOnClickListener(v -> {
-                Toast.makeText(v.getContext(), "点击了成员: " + member.getName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(v.getContext(), "点击了成员: " + member.getDisplayName(), Toast.LENGTH_SHORT).show();
             });
         }
     }

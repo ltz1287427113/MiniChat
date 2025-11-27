@@ -4,6 +4,7 @@ import com.example.minichat.data.model.request.AddFriendRequest;
 import com.example.minichat.data.model.request.HandleFriendApplicationRequest;
 import com.example.minichat.data.model.request.UserUpdateRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
+import com.example.minichat.data.model.response.FriendDetailResponse;
 import com.example.minichat.data.model.response.FriendListGroupedResponse;
 import com.example.minichat.data.model.response.JwtResponse;
 import com.example.minichat.data.model.response.ResponseMessage;
@@ -28,37 +29,46 @@ public interface ApiService {
     // 1. 登录 (返回 Token)
     @POST("auth/login")
     Call<ResponseMessage<JwtResponse>> login(@Body UserLoginRequest request);
+
     // 注册
     @POST("auth/register")
     Call<ResponseMessage<String>> register(@Body UserRegisterRequest request);
+
     // 发送验证码
     @POST("auth/send-code")
     Call<ResponseMessage<String>> sendCode(@Body SendCodeRequest request);
+
     // 更新用户信息
     @POST("user/update")
     Call<ResponseMessage<UserUpdateResponse>> updateUser(@Body UserUpdateRequest request);
+
     // 搜索陌生人
     @GET("friendApplication/searchStranger/{usernameOrEmail}")
     Call<ResponseMessage<StrangerResponse>> searchStranger(@Path("usernameOrEmail") String keyword);
 
-    /**
-     * 更新Token的接口（按后端实际路径调整）
-     * @param authorization 请求头（Bearer + token）
-     */
-    @POST("auth/update-token") // 替换成你后端实际的更新token接口路径
-    Call<ResponseMessage<JwtResponse>> updateToken(
-            @Header("Authorization") String authorization // 把token作为Authorization请求头
+    // 验证Token
+    @POST("auth/update-token")
+    // 替换成你后端实际的更新token接口路径
+    Call<ResponseMessage<JwtResponse>> updateToken(@Header("Authorization") String authorization // 把token作为Authorization请求头
     );
+
     // 发送好友请求
     @POST("friendApplication/addFriend")
     Call<ResponseMessage<Object>> addFriend(@Body AddFriendRequest request);
+
     // 获取好友申请列表
     @GET("friendApplication/Applications")
     Call<ResponseMessage<List<ApplicationResponse>>> getFriendApplications();
+
     // 处理好友申请
     @PUT("friendApplication/handle")
     Call<ResponseMessage<Void>> handleFriendApplication(@Body HandleFriendApplicationRequest request);
-    // [新] 获取分组好友列表
+
+    // 获取分组好友列表
     @GET("friendShip/getFriends")
     Call<ResponseMessage<FriendListGroupedResponse>> getFriends();
+
+    // 查询好友详情
+    @GET("friendShip/getFriendDetail/{username}")
+    Call<ResponseMessage<FriendDetailResponse>> getFriendDetail(@Path("username") String username);
 }

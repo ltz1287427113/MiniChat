@@ -2,6 +2,7 @@ package com.example.minichat.fragment; // (确保这是你的包名)
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem; // [新导入]
 import android.view.View;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.minichat.R;
 import com.example.minichat.activity.NewFriendsActivity;
+import com.example.minichat.activity.FriendProfileActivity;
 import com.example.minichat.adapter.ContactsAdapter;
 import com.example.minichat.databinding.FragmentContactsBinding;
 import com.example.minichat.model.ContactItem;
@@ -30,7 +32,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class ContactsFragment extends Fragment {
+public class ContactsFragment extends Fragment implements ContactsAdapter.OnItemClickListener {
 
     private FragmentContactsBinding binding;
     private ContactsAdapter adapter;
@@ -48,10 +50,10 @@ public class ContactsFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // 1. 初始化 RecyclerView (先给个空列表，防止白屏)
-        adapter = new ContactsAdapter(new ArrayList<>());
+        adapter = new ContactsAdapter(new ArrayList<>(), this);
         binding.rvContactsList.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.rvContactsList.setAdapter(adapter);
-        binding.rvContactsList.addItemDecoration(new DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL));
+        // binding.rvContactsList.addItemDecoration(new DividerItemDecoration(requireContext(), LinearLayoutManager.VERTICAL));
 
         // ... Toolbar 设置代码不变 ...
 
@@ -69,6 +71,24 @@ public class ContactsFragment extends Fragment {
 
     }
 
+    @Override
+    public void onItemClick(Object item) {
+        if (item instanceof FunctionItem) {
+            FunctionItem functionItem = (FunctionItem) item;
+            if ("新的朋友".equals(functionItem.getName())) {
+                Intent intent = new Intent(getActivity(), NewFriendsActivity.class);
+                startActivity(intent);
+            } else if ("群聊".equals(functionItem.getName())) {
+                Toast.makeText(getContext(), "点击了群聊", Toast.LENGTH_SHORT).show();
+            }
+        } else if (item instanceof ContactItem) {
+            ContactItem contactItem = (ContactItem) item;
+            Log.d("ContactsFragment", "Clicked ContactItem with username: " + contactItem.getUsername());
+            Intent intent = new Intent(getActivity(), FriendProfileActivity.class);
+            intent.putExtra("FRIEND_USERNAME", contactItem.getUsername());
+            startActivity(intent);
+        }
+    }
 
 
     // [修改] 放在 onResume 里，每次切回来都刷新一下，保证好友列表最新
