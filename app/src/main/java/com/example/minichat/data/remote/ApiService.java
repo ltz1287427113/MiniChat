@@ -18,6 +18,7 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
@@ -71,4 +72,8 @@ public interface ApiService {
     // 查询好友详情
     @GET("friendShip/getFriendDetail/{username}")
     Call<ResponseMessage<FriendDetailResponse>> getFriendDetail(@Path("username") String username);
+
+    // 删除好友
+    @DELETE("friendShip/deleteFriend/{friendUsername}")
+    Call<ResponseMessage<String>> deleteFriend(@Path("friendUsername") String friendUsername);
 }

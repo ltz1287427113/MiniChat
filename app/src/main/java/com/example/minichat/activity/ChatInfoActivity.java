@@ -5,12 +5,14 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.minichat.R;
 import com.example.minichat.adapter.ChatMemberAdapter;
 import com.example.minichat.databinding.ActivityChatInfoBinding;
 import com.example.minichat.model.ContactItem;
+import com.example.minichat.viewmodel.ChatInfoViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,8 @@ public class ChatInfoActivity extends AppCompatActivity {
 
     private ActivityChatInfoBinding binding;
     private ChatMemberAdapter memberAdapter;
+    private ChatInfoViewModel viewModel;
+    private String friendUsername; // 当前聊天对象的 username
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,16 +32,22 @@ public class ChatInfoActivity extends AppCompatActivity {
 
         // 1. 获取数据
         String chatName = getIntent().getStringExtra("CHAT_NAME");
+        friendUsername = getIntent().getStringExtra("CHAT_USERNAME"); // 获取好友 username
+
         if (chatName == null) chatName = "用户";
 
         // 2. 判断是否为群聊 (简单判断：如果名字里有"群"或者是"技术交流群")
         // 在真实项目中，你应该传递一个 boolean isGroup = intent.getBooleanExtra(...)
         boolean isGroup = chatName.contains("群") || chatName.contains("Group");
 
+        // 初始化 ViewModel
+        viewModel = new ViewModelProvider(this).get(ChatInfoViewModel.class);
+
         setupToolbar(chatName, isGroup);
         setupMemberGrid(chatName, isGroup);
         setupGroupOptions(chatName, isGroup);
         setupCommonListeners();
+        observeViewModel();
     }
 
     private void setupToolbar(String title, boolean isGroup) {
@@ -97,6 +107,24 @@ public class ChatInfoActivity extends AppCompatActivity {
 
         binding.rowClearHistory.setOnClickListener(v -> {
             Toast.makeText(this, "点击了清空聊天记录", Toast.LENGTH_SHORT).show();
+        });
+        binding.tvDeleteFriend.setOnClickListener(v -> {
+            if (friendUsername != null) {
+                viewModel.deleteFriend(friendUsername);
+            } else {
+                Toast.makeText(this, "无法获取好友信息", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void observeViewModel() {
+        viewModel.getDeleteFriendResult().observe(this, result -> {
+            if (result.error != null) {
+                Toast.makeText(this, "删除好友失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "好友已删除", Toast.LENGTH_SHORT).show();
+                finish(); // 删除成功后关闭当前页面
+            }
         });
     }
 }

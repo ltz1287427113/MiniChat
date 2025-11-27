@@ -14,7 +14,6 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
-        app:menu="@menu/chat_detail_menu"
         app:navigationIcon="@drawable/ic_arrow_back" />
 
     <androidx.constraintlayout.widget.ConstraintLayout

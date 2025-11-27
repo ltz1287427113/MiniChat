@@ -1,5 +1,6 @@
 package com.example.minichat.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -62,6 +63,7 @@ public class ChatDetailActivity extends AppCompatActivity {
 
     private void setupToolbar() {
         String chatName = getIntent().getStringExtra("CHAT_NAME");
+        String chatUserName = getIntent().getStringExtra("CHAT_USERNAME");
         if (chatName != null) {
             binding.toolbar.setTitle(chatName);
         }
@@ -82,7 +84,9 @@ public class ChatDetailActivity extends AppCompatActivity {
                 Intent intent = new Intent(this, ChatInfoActivity.class);
                 // 把当前聊天的名字传过去，方便显示
                 intent.putExtra("CHAT_NAME", chatName);
-                // (未来还要传 CHAT_ID，用于清空指定记录)
+                intent.putExtra("CHAT_USERNAME", chatUserName);
+                // 传递 CHAT_ID，用于清空指定记录和删除好友
+                intent.putExtra("CHAT_ID", getIntent().getStringExtra("CHAT_ID"));
                 startActivity(intent);
                 return true;
             }
@@ -136,6 +140,7 @@ public class ChatDetailActivity extends AppCompatActivity {
         binding.btnMore.setOnClickListener(v -> handlePlusButtonClick());
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupRecyclerView() {
         messageAdapter = new MessageAdapter();
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);

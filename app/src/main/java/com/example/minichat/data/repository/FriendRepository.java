@@ -193,4 +193,30 @@ public class FriendRepository {
             }
         });
     }
+
+    /**
+     * 删除好友
+     */
+    public void deleteFriend(String friendUsername, MutableLiveData<Result<String>> resultLiveData){
+        apiService.deleteFriend(friendUsername).enqueue(new Callback<ResponseMessage<String>>(){
+
+            @Override
+            public void onResponse(Call<ResponseMessage<String>> call, Response<ResponseMessage<String>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        resultLiveData.postValue(Result.success(response.body().getData()));
+                    } else {
+                        resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    resultLiveData.postValue(Result.failure(new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<String>> call, Throwable t) {
+                resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
+            }
+        });
+    }
 }
