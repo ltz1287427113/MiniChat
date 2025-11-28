@@ -2,6 +2,7 @@ package com.example.minichat.data.remote;
 
 import com.example.minichat.data.model.request.AddFriendRequest;
 import com.example.minichat.data.model.request.HandleFriendApplicationRequest;
+import com.example.minichat.data.model.request.UpdateFriendremarkRequest;
 import com.example.minichat.data.model.request.UserUpdateRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
 import com.example.minichat.data.model.response.FriendDetailResponse;
@@ -73,7 +74,12 @@ public interface ApiService {
     @GET("friendShip/getFriendDetail/{username}")
     Call<ResponseMessage<FriendDetailResponse>> getFriendDetail(@Path("username") String username);
 
+    // 更新好友备注
+    @PUT("friendShip/updateFriendremark")
+    Call<ResponseMessage<String>> updateFriendremark(@Body UpdateFriendremarkRequest request);
+
     // 删除好友
     @DELETE("friendShip/deleteFriend/{friendUsername}")
     Call<ResponseMessage<String>> deleteFriend(@Path("friendUsername") String friendUsername);
+
 }

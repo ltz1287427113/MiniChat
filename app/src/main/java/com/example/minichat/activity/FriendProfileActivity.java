@@ -23,6 +23,9 @@ public class FriendProfileActivity extends AppCompatActivity {
         binding = ActivityFriendProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        setSupportActionBar(binding.toolbar);
+        binding.toolbar.inflateMenu(com.example.minichat.R.menu.chat_detail_menu);
+
         // 1. 获取传递过来的 username (这是查询的关键)
         friendUsername = getIntent().getStringExtra("FRIEND_USERNAME");
         if (friendUsername == null) {

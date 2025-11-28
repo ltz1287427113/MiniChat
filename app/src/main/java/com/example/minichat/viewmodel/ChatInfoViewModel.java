@@ -17,6 +17,7 @@ public class ChatInfoViewModel extends AndroidViewModel {
 
     private FriendRepository friendRepository;
     private MutableLiveData<AuthRepository.Result<String>> deleteFriendResult = new MutableLiveData<>();
+    private MutableLiveData<AuthRepository.Result<String>> updateFriendremarkResult = new MutableLiveData<>();
 
     public ChatInfoViewModel(@NonNull Application application) {
         super(application);
@@ -29,5 +30,13 @@ public class ChatInfoViewModel extends AndroidViewModel {
 
     public void deleteFriend(String friendUsername) {
         friendRepository.deleteFriend(friendUsername, deleteFriendResult);
+    }
+
+    public LiveData<AuthRepository.Result<String>> getUpdateFriendremarkResult() {
+        return updateFriendremarkResult;
+    }
+
+    public void updateFriendremark(String username, String newRemark) {
+        friendRepository.updateFriendremark(username, newRemark, updateFriendremarkResult);
     }
 }

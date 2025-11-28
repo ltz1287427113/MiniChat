@@ -107,14 +107,14 @@ public class ProfileActivity extends AppCompatActivity {
      * @param title 页面的标题 (例如 "修改名字")
      * @param value 传递给 EditText 的当前值
      */
-    private void launchEditor(String title, String value) {
+    public void launchEditor(String title, String value) {
         // 1. 创建 Intent，目标是 EditProfileActivity
         Intent intent = new Intent(this, EditProfileActivity.class);
 
         // 2. [核心] 使用 .putExtra() 来传递数据
         intent.putExtra("EXTRA_TITLE", title);
         intent.putExtra("EXTRA_VALUE", value);
-
+        intent.putExtra("EXTRA_UPDATE_TYPE", "UPDATE_TYPE_USER_PROFILE");
         // 3. 启动 Activity
         startActivity(intent);
     }

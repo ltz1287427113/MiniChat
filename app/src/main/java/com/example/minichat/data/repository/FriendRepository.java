@@ -6,6 +6,7 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.minichat.data.model.request.AddFriendRequest;
+import com.example.minichat.data.model.request.UpdateFriendremarkRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
 import com.example.minichat.data.model.response.FriendDetailResponse;
 import com.example.minichat.data.model.response.FriendListGroupedResponse;
@@ -16,6 +17,7 @@ import com.example.minichat.data.remote.ApiService;
 import com.example.minichat.data.repository.AuthRepository.Result;
 
 import com.example.minichat.data.model.request.HandleFriendApplicationRequest;
+
 import java.util.List;
 
 import retrofit2.Call;
@@ -32,6 +34,7 @@ public class FriendRepository {
 
     /**
      * 处理好友请求
+     *
      * @param applicationId
      * @param status
      * @param remark
@@ -87,11 +90,13 @@ public class FriendRepository {
             }
         });
     }
+
     /**
      * 发送好友申请
+     *
      * @param targetUsername 目标微信号 (搜索结果里的 username)
-     * @param greeting 打招呼内容
-     * @param remark 备注
+     * @param greeting       打招呼内容
+     * @param remark         备注
      */
     public void sendFriendRequest(String targetUsername, String greeting, String remark, MutableLiveData<Result<String>> resultLiveData) {
         // 构建请求体 (这里我们只用 username，email 传 null)
@@ -117,6 +122,7 @@ public class FriendRepository {
             }
         });
     }
+
     /**
      * 获取好友申请列表
      */
@@ -141,6 +147,7 @@ public class FriendRepository {
             }
         });
     }
+
     /**
      * 获取好友列表
      */
@@ -169,6 +176,7 @@ public class FriendRepository {
             }
         });
     }
+
     /**
      * 获取好友详情
      */
@@ -194,11 +202,39 @@ public class FriendRepository {
         });
     }
 
+
+    /**
+     * 更改好友备注
+     */
+    public void updateFriendremark(String username, String newRemark, MutableLiveData<Result<String>> resultLiveData) {
+        UpdateFriendremarkRequest request = new UpdateFriendremarkRequest(username, newRemark);
+        apiService.updateFriendremark(request).enqueue(new Callback<ResponseMessage<String>>() {
+
+            @Override
+            public void onResponse(Call<ResponseMessage<String>> call, Response<ResponseMessage<String>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        resultLiveData.postValue(Result.success(response.body().getData()));
+                    } else {
+                        resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    resultLiveData.postValue(Result.failure(new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<String>> call, Throwable t) {
+                resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
+            }
+        });
+    }
+
     /**
      * 删除好友
      */
-    public void deleteFriend(String friendUsername, MutableLiveData<Result<String>> resultLiveData){
-        apiService.deleteFriend(friendUsername).enqueue(new Callback<ResponseMessage<String>>(){
+    public void deleteFriend(String friendUsername, MutableLiveData<Result<String>> resultLiveData) {
+        apiService.deleteFriend(friendUsername).enqueue(new Callback<ResponseMessage<String>>() {
 
             @Override
             public void onResponse(Call<ResponseMessage<String>> call, Response<ResponseMessage<String>> response) {

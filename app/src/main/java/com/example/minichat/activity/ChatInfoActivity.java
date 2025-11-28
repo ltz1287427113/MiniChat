@@ -23,6 +23,7 @@ public class ChatInfoActivity extends AppCompatActivity {
     private ChatMemberAdapter memberAdapter;
     private ChatInfoViewModel viewModel;
     private String friendUsername; // 当前聊天对象的 username
+    private String chatName; // 当前聊天对象的名称
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,7 @@ public class ChatInfoActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         // 1. 获取数据
-        String chatName = getIntent().getStringExtra("CHAT_NAME");
+        chatName = getIntent().getStringExtra("CHAT_NAME");
         friendUsername = getIntent().getStringExtra("CHAT_USERNAME"); // 获取好友 username
 
         if (chatName == null) chatName = "用户";
@@ -61,17 +62,17 @@ public class ChatInfoActivity extends AppCompatActivity {
         if (isGroup) {
             // --- 群聊模式：添加多个假数据 ---
             members.add(new ContactItem("1", "群主", null));
-            members.add(new ContactItem("2", "管理员",null));
-            members.add(new ContactItem("3", "小明",null));
-            members.add(new ContactItem("4", "小红",null));
-            members.add(new ContactItem("5", "小刚",null));
-            members.add(new ContactItem("6", "张三",null));
-            members.add(new ContactItem("7", "李四",null));
-            members.add(new ContactItem("8", "王五",null));
-            members.add(new ContactItem("9", "赵六",null));
+            members.add(new ContactItem("2", "管理员", null));
+            members.add(new ContactItem("3", "小明", null));
+            members.add(new ContactItem("4", "小红", null));
+            members.add(new ContactItem("5", "小刚", null));
+            members.add(new ContactItem("6", "张三", null));
+            members.add(new ContactItem("7", "李四", null));
+            members.add(new ContactItem("8", "王五", null));
+            members.add(new ContactItem("9", "赵六", null));
         } else {
             // --- 私聊模式：只添加对方 ---
-            members.add(new ContactItem("id", remark,null));
+            members.add(new ContactItem("id", remark, null));
         }
 
         // 初始化 Adapter
@@ -107,6 +108,15 @@ public class ChatInfoActivity extends AppCompatActivity {
 
         binding.rowClearHistory.setOnClickListener(v -> {
             Toast.makeText(this, "点击了清空聊天记录", Toast.LENGTH_SHORT).show();
+        });
+        binding.rowRemarkFriend.setOnClickListener(v -> {
+            // 跳转到 EditProfileActivity 来修改备注
+            android.content.Intent intent = new android.content.Intent(this, EditProfileActivity.class);
+            intent.putExtra("EXTRA_TITLE", "修改备注");
+            intent.putExtra("EXTRA_VALUE", chatName);
+            intent.putExtra(EditProfileActivity.EXTRA_UPDATE_TYPE, EditProfileActivity.UPDATE_TYPE_FRIEND_REMARK); // 使用常量
+            intent.putExtra("EXTRA_FRIEND_USERNAME", friendUsername); // 新增：好友用户名
+            startActivity(intent);
         });
         binding.tvDeleteFriend.setOnClickListener(v -> {
             if (friendUsername != null) {

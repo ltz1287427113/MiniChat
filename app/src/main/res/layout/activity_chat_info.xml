@@ -28,7 +28,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-            <View style="@style/gap"/>
+
+            <View style="@style/gap" />
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_member_list"
                 android:layout_width="match_parent"
@@ -36,7 +38,7 @@
                 android:nestedScrollingEnabled="false"
                 android:padding="10dp" />
 
-            <View style="@style/gap"/>
+            <View style="@style/gap" />
 
             <LinearLayout
                 android:id="@+id/group_options_container"
@@ -148,7 +150,7 @@
                     app:tint="#999999" />
             </LinearLayout>
 
-            <View style="@style/Line"/>
+            <View style="@style/Line" />
 
             <LinearLayout
                 android:id="@+id/row_clear_history"
@@ -176,7 +178,37 @@
                     app:tint="#999999" />
             </LinearLayout>
 
-            <View style="@style/gap"/>
+            <View style="@style/Line" />
+
+            <LinearLayout
+                android:id="@+id/row_remark_friend"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:backgroundTint="@android:color/white"
+                android:clickable="true"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="更改备注"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:rotation="180"
+                    android:src="@drawable/ic_arrow_back"
+                    app:tint="#999999" />
+            </LinearLayout>
+
+            <View style="@style/Line" />
+
+            <View style="@style/gap" />
 
             <LinearLayout
                 android:id="@+id/row_delete_friend"
@@ -202,7 +234,7 @@
                     android:textSize="18sp" />
             </LinearLayout>
 
-            <View style="@style/Line"/>
+            <View style="@style/Line" />
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
