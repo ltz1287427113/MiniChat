@@ -15,6 +15,7 @@ import com.example.minichat.R;
 import com.example.minichat.model.ContactItem;
 import com.example.minichat.model.FunctionItem;
 import com.example.minichat.model.HeaderItem;
+import com.example.minichat.utils.UserDisplayUtils;
 
 import java.util.List;
 
@@ -138,6 +139,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         void bind(FunctionItem item) {
             tvName.setText(item.getName());
+            ivIcon.setImageResource(item.getIconResId());
             Log.d("ContactsAdapter", "FunctionViewHolder bind called for: " + item.getName());
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
@@ -178,11 +180,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             tvName.setText(item.getDisplayName());
 
             // [新] 加载头像
-            // 如果你有引入 Glide，可以这样写：
-            // Glide.with(itemView).load(item.getAvatarUrl()).into(ivAvatar);
-
-            // 暂时用默认头像
-            ivAvatar.setImageResource(R.mipmap.ic_launcher_round);
+            UserDisplayUtils.loadAvatar(itemView.getContext(), item.getAvatarUrl(), ivAvatar);
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {

@@ -80,17 +80,7 @@ public class MeFragment extends Fragment {
             binding.tvWechatId.setText("微信号: " + user.getUsername());
 
             // [新增] 加载头像
-            String avatarUrl = user.getAvatarUrl();
-            if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                Glide.with(this)
-                        .load(avatarUrl)
-                        .placeholder(R.mipmap.ic_launcher_round)
-                        .error(R.mipmap.ic_launcher_round)
-                        .circleCrop() // 裁剪成圆形
-                        .into(binding.ivAvatar); // 注意这里 ID 是 ivAvatar
-            } else {
-                binding.ivAvatar.setImageResource(R.mipmap.ic_launcher_round);
-            }
+            com.example.minichat.utils.UserDisplayUtils.loadAvatar(getContext(), user.getAvatarUrl(), binding.ivAvatar);
         } else {
             // 如果 user 为 null，说明 SpUtils.saveUser 没成功，或者被清空了
             binding.tvName.setText("未登录");

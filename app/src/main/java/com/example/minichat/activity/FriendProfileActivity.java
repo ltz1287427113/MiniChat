@@ -1,5 +1,7 @@
 package com.example.minichat.activity;
 
+import static java.security.AccessController.getContext;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -66,7 +68,7 @@ public class FriendProfileActivity extends AppCompatActivity {
         // 设置微信号
         binding.tvWechatId.setText("微信号: " + friend.getUsername());
 
-        // TODO: 加载头像 (friend.getAvatarUrl())
+        com.example.minichat.utils.UserDisplayUtils.loadAvatar(this, friend.getAvatarUrl(), binding.ivAvatar);
     }
 
     private void setupListeners() {

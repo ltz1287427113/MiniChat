@@ -73,31 +73,8 @@ public class ProfileActivity extends AppCompatActivity {
             binding.tvWechatIdValue.setText(user.getUsername());
             binding.tvEmailValue.setText(user.getEmail());
 
-            // 3. [核心修改] 使用 Glide 加载头像
-            String avatarUrl = user.getAvatarUrl();
-            Log.d("ProfileActivity", "Loading avatar from URL: " + avatarUrl);
-
-            // 检查 URL 是否为空，并拼接完整的 URL
-            if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                // 拼接完整的 URL
-                String baseUrl = com.example.minichat.data.remote.ApiClient.BASE_URL;
-                if (baseUrl.endsWith("/") && avatarUrl.startsWith("/")) {
-                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-                }
-                String fullAvatarUrl = baseUrl + avatarUrl;
-                Log.d("ProfileActivity", "Attempting to load avatar with full URL: " + fullAvatarUrl);
-                Glide.with(this)
-                        .load(fullAvatarUrl) // 图片地址
-                        .placeholder(R.mipmap.ic_launcher_round) // 加载中显示的占位图
-                        .error(R.mipmap.ic_launcher_round) // 加载失败显示的图
-                        .circleCrop() // [可选] 裁剪成圆形 (如果你想要圆形头像)
-                        // .diskCacheStrategy(DiskCacheStrategy.ALL) // [可选] 缓存策略
-                        .into(binding.ivAvatarValue); // [关键] 显示到哪个 ImageView
-                Log.d("ProfileActivity", "Glide load initiated for URL: " + fullAvatarUrl);
-            } else {
-                // 如果没有 URL，显示默认头像
-                binding.ivAvatarValue.setImageResource(R.mipmap.ic_launcher_round);
-            }
+            // 3. [核心修改] 使用 UserDisplayUtils 加载头像
+            com.example.minichat.utils.UserDisplayUtils.loadAvatar(this, user.getAvatarUrl(), binding.ivAvatarValue);
         }
     }
 

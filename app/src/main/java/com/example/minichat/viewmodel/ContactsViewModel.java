@@ -33,10 +33,19 @@ public class ContactsViewModel extends AndroidViewModel {
         repository = new FriendRepository(application);
     }
 
-    public LiveData<List<Object>> getContactList() { return contactList; }
-    public LiveData<String> getErrorMsg() { return errorMsg; }
+    public LiveData<List<Object>> getContactList() {
+        return contactList;
+    }
+
+    public LiveData<String> getErrorMsg() {
+        return errorMsg;
+    }
 
     public void loadContacts() {
+        loadContacts(true);
+    }
+
+    public void loadContacts(boolean needFunction) {
         MutableLiveData<AuthRepository.Result<FriendListGroupedResponse>> rawResult = new MutableLiveData<>();
 
         // 1. 观察 Repository 的原始返回
@@ -45,7 +54,7 @@ public class ContactsViewModel extends AndroidViewModel {
                 errorMsg.postValue(result.error.getMessage());
             } else if (result.data != null) {
                 // 2. [核心] 数据转换：从 "分组结构" -> "扁平列表"
-                List<Object> flatList = transformData(result.data);
+                List<Object> flatList = transformData(result.data, needFunction);
                 contactList.postValue(flatList);
             }
         });
@@ -57,7 +66,7 @@ public class ContactsViewModel extends AndroidViewModel {
     /**
      * 将后端的分组数据，转换为 Adapter 需要的混合列表
      */
-    private List<Object> transformData(FriendListGroupedResponse response) {
+    private List<Object> transformData(FriendListGroupedResponse response, boolean needFunction) {
         List<Object> list = new ArrayList<>();
 
         // 如果 response 为空，则只返回功能区，避免 NullPointerException
@@ -67,7 +76,6 @@ public class ContactsViewModel extends AndroidViewModel {
             return list;
         }
 
-        
 
         // 2. 遍历分组
         if (response.getGroups() != null && !response.getGroups().isEmpty()) {
@@ -81,8 +89,7 @@ public class ContactsViewModel extends AndroidViewModel {
                     Log.d("ContactsViewModel", "Friends in group " + group.getInitial() + ": " + group.getFriends().size());
                     for (FriendDTO friend : group.getFriends()) {
                         // [核心修改] 使用新的构造函数
-                        list.add(new ContactItem(
-                                friend.getFriendUsername(), // username
+                        list.add(new ContactItem(friend.getFriendUsername(), // username
                                 friend.getFriendRemark(),   // displayName
                                 friend.getFriendAvatarUrl() // avatarUrl
                         ));
@@ -95,9 +102,11 @@ public class ContactsViewModel extends AndroidViewModel {
             Log.d("ContactsViewModel", "No groups found in response.");
         }
 
-        // [新] 无论是否有好友，都添加功能区
-        list.add(0, new FunctionItem("新的朋友", R.drawable.ic_addfriend));
-        list.add(1, new FunctionItem("群聊", R.drawable.ic_group_chat));
+        if (needFunction) {
+            // [新] 无论是否有好友，都添加功能区
+            list.add(0, new FunctionItem("新的朋友", R.drawable.ic_addfriend));
+            list.add(1, new FunctionItem("群聊", R.drawable.ic_group_chat));
+        }
 
         return list;
     }
