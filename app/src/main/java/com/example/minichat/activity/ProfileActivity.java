@@ -1,14 +1,28 @@
 package com.example.minichat.activity; // (确保这是你的包名)
 
+import android.Manifest;
 import android.content.Intent; // [新导入]
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.lifecycle.ViewModelProvider;
 
+import com.bumptech.glide.Glide;
+import com.example.minichat.R;
 import com.example.minichat.data.model.response.UserLoginResponse;
 import com.example.minichat.databinding.ActivityProfileBinding;
 import com.example.minichat.utils.SpUtils;
+import com.example.minichat.utils.UriUtils;
+import com.example.minichat.viewmodel.UserViewModel;
+
+import java.io.File;
 
 /**
  * [注释]
@@ -18,34 +32,72 @@ import com.example.minichat.utils.SpUtils;
 public class ProfileActivity extends AppCompatActivity {
 
     private ActivityProfileBinding binding;
+    private UserViewModel userViewModel;
+    private Uri currentPhotoUri; // 用于暂存拍照后的 URI
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         binding = ActivityProfileBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        setupToolbar();
+        userViewModel = new ViewModelProvider(this).get(UserViewModel.class);
 
+        // [新] 观察上传结果
+        userViewModel.getUpdateResult().observe(this, result -> {
+            if ("SUCCESS".equals(result)) {
+                Toast.makeText(this, "头像修改成功", Toast.LENGTH_SHORT).show();
+                // 重新加载用户信息(刷新头像)
+                setupViews();
+            } else {
+                Toast.makeText(this, "修改失败: " + result, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        setupToolbar();
         // 4. [修改] 为每一行设置点击事件
         setupClickListeners();
         setupViews();
     }
- 
+
     private void setupViews() {
         // 1. 从本地读取
         UserLoginResponse user = SpUtils.getUser(this);
 
         if (user != null) {
-            // 2. 设置 UI
+            // 2. 设置文字信息 (保持不变)
             String displayName = (user.getNickname() != null && !user.getNickname().isEmpty())
                     ? user.getNickname()
                     : user.getUsername();
-
             binding.tvNameValue.setText(displayName);
             binding.tvWechatIdValue.setText(user.getUsername());
-            binding.tvEmailValue.setText(user.getEmail()); // 显示邮箱
+            binding.tvEmailValue.setText(user.getEmail());
+
+            // 3. [核心修改] 使用 Glide 加载头像
+            String avatarUrl = user.getAvatarUrl();
+            Log.d("ProfileActivity", "Loading avatar from URL: " + avatarUrl);
+
+            // 检查 URL 是否为空，并拼接完整的 URL
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                // 拼接完整的 URL
+                String baseUrl = com.example.minichat.data.remote.ApiClient.BASE_URL;
+                if (baseUrl.endsWith("/") && avatarUrl.startsWith("/")) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+                }
+                String fullAvatarUrl = baseUrl + avatarUrl;
+                Log.d("ProfileActivity", "Attempting to load avatar with full URL: " + fullAvatarUrl);
+                Glide.with(this)
+                        .load(fullAvatarUrl) // 图片地址
+                        .placeholder(R.mipmap.ic_launcher_round) // 加载中显示的占位图
+                        .error(R.mipmap.ic_launcher_round) // 加载失败显示的图
+                        .circleCrop() // [可选] 裁剪成圆形 (如果你想要圆形头像)
+                        // .diskCacheStrategy(DiskCacheStrategy.ALL) // [可选] 缓存策略
+                        .into(binding.ivAvatarValue); // [关键] 显示到哪个 ImageView
+                Log.d("ProfileActivity", "Glide load initiated for URL: " + fullAvatarUrl);
+            } else {
+                // 如果没有 URL，显示默认头像
+                binding.ivAvatarValue.setImageResource(R.mipmap.ic_launcher_round);
+            }
         }
     }
 
@@ -66,10 +118,7 @@ public class ProfileActivity extends AppCompatActivity {
     private void setupClickListeners() {
 
         // [注释] 点击“头像”行
-        binding.rowAvatar.setOnClickListener(v -> {
-            Toast.makeText(this, "点击了 头像", Toast.LENGTH_SHORT).show();
-            // TODO: 启动图片选择器 (这是一个复杂功能，我们稍后做)
-        });
+        binding.rowAvatar.setOnClickListener(v -> showImagePickerInfo());
 
         // [注释] 点击“名字”行
         binding.rowName.setOnClickListener(v -> {
@@ -99,6 +148,82 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    // 1. 相册选择器
+    private final ActivityResultLauncher<String> pickImageLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    uploadAvatar(uri);
+                }
+            });
+
+    // 2. 相机启动器
+    private final ActivityResultLauncher<Uri> takePhotoLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), isSuccess -> {
+                if (isSuccess && currentPhotoUri != null) {
+                    uploadAvatar(currentPhotoUri);
+                }
+            });
+
+    // 3. 权限请求器 (用于相机)
+    private final ActivityResultLauncher<String> requestCameraPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    openCamera();
+                } else {
+                    Toast.makeText(this, "需要相机权限才能拍照", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    /**
+     * 显示选择框：拍照 or 相册
+     */
+    private void showImagePickerInfo() {
+        String[] options = {"拍照", "从相册选择"};
+        new AlertDialog.Builder(this)
+                .setTitle("修改头像")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        // 拍照 -> 先请求权限
+                        requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+                    } else {
+                        // 相册
+                        pickImageLauncher.launch("image/*");
+                    }
+                })
+                .show();
+    }
+
+    /**
+     * 打开相机
+     */
+    private void openCamera() {
+        // 1. 创建一个临时文件用于保存照片
+        File photoFile = new File(getExternalCacheDir(), "avatar_temp.jpg");
+
+        // 2. 获取 URI (使用 FileProvider)
+        // 注意：这里的 authority 必须和 AndroidManifest.xml 里的一致
+        currentPhotoUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", photoFile);
+
+        // 3. 启动相机
+        takePhotoLauncher.launch(currentPhotoUri);
+    }
+
+    /**
+     * [核心] 上传头像
+     */
+    private void uploadAvatar(Uri uri) {
+        // 1. 将 Uri 转换为 File
+        File file = UriUtils.uriToFile(this, uri);
+
+        if (file != null) {
+            Toast.makeText(this, "正在上传...", Toast.LENGTH_SHORT).show();
+            // 2. 调用 ViewModel (nickname 传 null)
+            userViewModel.updateUser(null, file.getAbsolutePath());
+        } else {
+            Toast.makeText(this, "图片处理失败", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     /**
      * [注释]
      * [新方法]
@@ -117,5 +242,11 @@ public class ProfileActivity extends AppCompatActivity {
         intent.putExtra("EXTRA_UPDATE_TYPE", "UPDATE_TYPE_USER_PROFILE");
         // 3. 启动 Activity
         startActivity(intent);
+    }
+    // 当 EditProfileActivity 返回时刷新数据
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setupViews();
     }
 }

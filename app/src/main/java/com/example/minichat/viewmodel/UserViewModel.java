@@ -8,6 +8,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.example.minichat.data.repository.UserRepository;
 
+import java.io.File;
+
 public class UserViewModel extends AndroidViewModel {
 
     private UserRepository repository;
@@ -24,10 +26,10 @@ public class UserViewModel extends AndroidViewModel {
     }
 
     /**
-     * ViewModel 只是一个“二传手”
-     * 它接收 Activity 的指令，转发给 Repository
+     * [修改] 更新用户信息
      */
     public void updateUser(String nickname, String avatarUrl) {
+        // 这里的 repository.updateUser 签名没变，所以不用改
         repository.updateUser(nickname, avatarUrl, updateResult);
     }
 }

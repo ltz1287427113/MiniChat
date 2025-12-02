@@ -11,6 +11,12 @@ import com.example.minichat.data.remote.ApiClient;
 import com.example.minichat.data.remote.ApiService;
 import com.example.minichat.utils.SpUtils; //
 
+import java.io.File;
+import android.webkit.MimeTypeMap;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -30,52 +36,91 @@ public class UserRepository {
     }
 
     /**
-     * 更新用户信息
-     * @param nickname 新昵称
-     * @param avatarUrl 新头像
-     * @param resultLiveData 用于返回结果给 ViewModel 的通道
+     * 统一更新入口
+     * @param nickname 若不为 null，则调用修改昵称接口
+     * @param avatarPath 若不为 null，则调用修改头像接口
      */
-    public void updateUser(String nickname, String avatarUrl, MutableLiveData<String> resultLiveData) {
-        UserUpdateRequest request = new UserUpdateRequest(nickname, avatarUrl);
+    public void updateUser(String nickname, String avatarPath, MutableLiveData<String> resultLiveData) {
 
-        apiService.updateUser(request).enqueue(new Callback<ResponseMessage<UserUpdateResponse>>() {
-            @Override
-            public void onResponse(Call<ResponseMessage<UserUpdateResponse>> call, Response<ResponseMessage<UserUpdateResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    if (response.body().isSuccess()) {
-                        // 1. 网络请求成功，获取最新数据
-                        UserUpdateResponse newData = response.body().getData();
+        // --- 情况 A: 修改昵称 (JSON) ---
+        if (nickname != null) {
+            UserUpdateRequest request = new UserUpdateRequest(nickname);
+            apiService.updateUserInfo(request).enqueue(new UpdateCallback(resultLiveData));
+        }
 
-                        // 2. [核心逻辑] Repository 负责更新本地缓存 (SpUtils)
-                        updateLocalUser(newData);
+        // --- 情况 B: 修改头像 (Multipart) ---
+        else if (avatarPath != null) {
+            File file = new File(avatarPath);
+            if (file.exists()) {
+                // 1. 创建 RequestBody (文件内容)
+                String mimeType = getMimeType(file.getAbsolutePath());
+                RequestBody requestFile = RequestBody.create(MediaType.parse(mimeType), file);
 
-                        // 3. 通知 ViewModel 任务完成
-                        resultLiveData.postValue("SUCCESS");
-                    } else {
-                        resultLiveData.postValue(response.body().getMessage());
-                    }
-                } else {
-                    resultLiveData.postValue("请求失败: " + response.code());
-                }
+                // 2. 创建 MultipartBody.Part (表单项)
+                // [注意] 第一个参数 "avatar" 必须和后端接口的 @RequestParam("avatar") 一致！
+                MultipartBody.Part body = MultipartBody.Part.createFormData("avatar", file.getName(), requestFile);
+
+                // 3. 调用上传接口
+                apiService.updateAvatar(body).enqueue(new UpdateCallback(resultLiveData));
+            } else {
+                resultLiveData.postValue("文件不存在");
             }
+        }
+    }
 
-            @Override
-            public void onFailure(Call<ResponseMessage<UserUpdateResponse>> call, Throwable t) {
-                resultLiveData.postValue("网络错误: " + t.getMessage());
-            }
-        });
+    private String getMimeType(String url) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        return type != null ? type : "application/octet-stream";
     }
 
     /**
-     * 辅助方法：更新本地 SharedPreferences
-     * (这部分逻辑属于数据持久化，理应在 Repository 层处理)
+     * 内部复用的 Callback
+     * 因为两个接口返回的数据结构 (UserUpdateResponse) 是一样的，所以可以复用回调逻辑
      */
+    private class UpdateCallback implements Callback<ResponseMessage<UserUpdateResponse>> {
+        private MutableLiveData<String> resultLiveData;
+
+        public UpdateCallback(MutableLiveData<String> resultLiveData) {
+            this.resultLiveData = resultLiveData;
+        }
+
+        @Override
+        public void onResponse(Call<ResponseMessage<UserUpdateResponse>> call, Response<ResponseMessage<UserUpdateResponse>> response) {
+            if (response.isSuccessful() && response.body() != null) {
+                if (response.body().isSuccess()) {
+                    // 1. 成功拿到最新数据
+                    UserUpdateResponse newData = response.body().getData();
+                    // 2. 更新本地缓存 (昵称或头像)
+                    updateLocalUser(newData);
+                    // 3. 通知 UI
+                    resultLiveData.postValue("SUCCESS");
+                } else {
+                    resultLiveData.postValue(response.body().getMessage());
+                }
+            } else {
+                resultLiveData.postValue("请求失败: " + response.code());
+            }
+        }
+
+        @Override
+        public void onFailure(Call<ResponseMessage<UserUpdateResponse>> call, Throwable t) {
+            resultLiveData.postValue("网络错误: " + t.getMessage());
+        }
+    }
+
+    // 更新本地 SpUtils 数据
     private void updateLocalUser(UserUpdateResponse newData) {
         UserLoginResponse localUser = SpUtils.getUser(context);
         if (localUser != null) {
+            // 如果返回了新昵称，就更新本地昵称
             if (newData.getNickname() != null) {
                 localUser.setNickname(newData.getNickname());
             }
+            // 如果返回了新头像 URL，就更新本地头像
             if (newData.getAvatarUrl() != null) {
                 localUser.setAvatarUrl(newData.getAvatarUrl());
             }

@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
+import com.example.minichat.R;
 import com.example.minichat.activity.ProfileActivity;
 import com.example.minichat.activity.SettingsActivity;
 import com.example.minichat.data.model.response.UserLoginResponse;
@@ -77,8 +79,18 @@ public class MeFragment extends Fragment {
             binding.tvName.setText(displayName);
             binding.tvWechatId.setText("微信号: " + user.getUsername());
 
-            // (可选) 如果有头像 URL，用 Glide 加载
-            // if (user.getAvatarUrl() != null) { ... }
+            // [新增] 加载头像
+            String avatarUrl = user.getAvatarUrl();
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(avatarUrl)
+                        .placeholder(R.mipmap.ic_launcher_round)
+                        .error(R.mipmap.ic_launcher_round)
+                        .circleCrop() // 裁剪成圆形
+                        .into(binding.ivAvatar); // 注意这里 ID 是 ivAvatar
+            } else {
+                binding.ivAvatar.setImageResource(R.mipmap.ic_launcher_round);
+            }
         } else {
             // 如果 user 为 null，说明 SpUtils.saveUser 没成功，或者被清空了
             binding.tvName.setText("未登录");

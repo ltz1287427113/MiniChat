@@ -17,13 +17,17 @@ import com.example.minichat.data.model.response.UserUpdateResponse;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
 import retrofit2.http.PUT;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 public interface ApiService {
@@ -40,9 +44,14 @@ public interface ApiService {
     @POST("auth/send-code")
     Call<ResponseMessage<String>> sendCode(@Body SendCodeRequest request);
 
-    // 更新用户信息
+    // 更新用户昵称
     @POST("user/update")
-    Call<ResponseMessage<UserUpdateResponse>> updateUser(@Body UserUpdateRequest request);
+    Call<ResponseMessage<UserUpdateResponse>> updateUserInfo(@Body UserUpdateRequest request);
+
+    // 更新用户头像
+    @Multipart
+    @POST("user/updateAvatar")
+    Call<ResponseMessage<UserUpdateResponse>> updateAvatar(@Part MultipartBody.Part avatar);
 
     // 搜索陌生人
     @GET("friendApplication/searchStranger/{usernameOrEmail}")

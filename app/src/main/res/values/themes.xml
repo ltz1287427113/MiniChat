@@ -3,5 +3,11 @@
     <style name="Base.Theme.MiniChat" parent="Theme.Material3.DayNight.NoActionBar">
     </style>
 
-    <style name="Theme.MiniChat" parent="Base.Theme.MiniChat" />
+    <style name="Theme.MiniChat" parent="Base.Theme.MiniChat">
+        <item name="popupMenuStyle">@style/CustomPopupMenu</item>
+    </style>
+
+    <style name="CustomPopupMenu" parent="Widget.AppCompat.PopupMenu">
+        <item name="android:popupBackground">#EDEDED</item>
+    </style>
 </resources>

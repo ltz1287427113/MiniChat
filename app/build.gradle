@@ -56,4 +56,9 @@ dependencies {
     implementation libs.okhttp
     // RecyclerView (显示列表)
     implementation libs.recyclerview
+    // 用于文件上传的Multipart支持
+    implementation libs.converter.scalars
+    // Glide 图片加载库
+    implementation libs.glide
+    annotationProcessor libs.compiler
 }

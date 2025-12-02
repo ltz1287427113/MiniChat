@@ -4,7 +4,10 @@ import android.content.Context;
 import android.util.Log;
 import android.view.Gravity; // [新导入]
 import android.view.View;
+import android.view.ContextThemeWrapper; // [新导入]
 import androidx.appcompat.widget.PopupMenu; // [新导入：使用 androidx]
+
+import com.example.minichat.R;
 
 import java.lang.reflect.Method;
 
@@ -28,7 +31,7 @@ public class MenuHelper {
 
         // 1. [注释] 使用 androidx.appcompat.widget.PopupMenu
         // 并指定 Gravity.END，让它在按钮下方靠右对齐 (修复位置问题)
-        PopupMenu popup = new PopupMenu(context, anchorView, Gravity.END);
+        PopupMenu popup = new PopupMenu(new ContextThemeWrapper(context, R.style.CustomPopupMenu), anchorView, Gravity.END);
 
         // 2. [注释] 加载菜单资源 (例如 top_nav_menu.xml)
         popup.getMenuInflater().inflate(menuResId, popup.getMenu());
