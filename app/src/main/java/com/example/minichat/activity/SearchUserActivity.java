@@ -3,16 +3,20 @@ package com.example.minichat.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.minichat.data.model.response.StrangerResponse;
+import com.example.minichat.data.repository.AuthRepository;
 import com.example.minichat.databinding.ActivitySearchUserBinding;
 import com.example.minichat.viewmodel.SearchUserViewModel;
+
 
 public class SearchUserActivity extends AppCompatActivity {
 
@@ -21,6 +25,7 @@ public class SearchUserActivity extends AppCompatActivity {
 
     // [新增变量] 用于暂存当前搜索到的用户
     private StrangerResponse currentStranger;
+    private Observer<AuthRepository.Result<Boolean>> isFriendObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,23 +37,6 @@ public class SearchUserActivity extends AppCompatActivity {
 
         setupListeners();
         observeViewModel();
-
-        // [修改] 观察搜索结果，把数据存到 currentStranger
-        viewModel.getSearchResult().observe(this, result -> {
-            if (result.error != null) {
-                binding.tvNotFound.setVisibility(View.VISIBLE);
-                binding.tvNotFound.setText(result.error.getMessage());
-                binding.resultContainer.setVisibility(View.GONE);
-            } else if (result.data != null) {
-                // [核心] 保存当前搜索到的人，方便后面点击“添加”时使用
-                currentStranger = result.data;
-
-                binding.resultContainer.setVisibility(View.VISIBLE);
-                binding.tvNotFound.setVisibility(View.GONE);
-                binding.tvNickname.setText(currentStranger.getNickname());
-                binding.tvUsername.setText("微信号: " + currentStranger.getUsername());
-            }
-        });
     }
 
     private void setupListeners() {
@@ -92,6 +80,9 @@ public class SearchUserActivity extends AppCompatActivity {
         binding.resultContainer.setVisibility(View.GONE);
         binding.tvNotFound.setVisibility(View.GONE);
 
+        // [新增] 清空 isFriendResult，防止旧数据干扰
+        viewModel.resetIsFriendResult();
+
         // 发起搜索
         viewModel.search(keyword);
     }
@@ -105,12 +96,43 @@ public class SearchUserActivity extends AppCompatActivity {
             } else if (result.data != null) {
                 // 搜索成功，显示结果卡片
                 StrangerResponse user = result.data;
+                currentStranger = user;
+                // 每次搜索成功时，先移除旧的 isFriendObserver (如果有的话)
+                if (isFriendObserver != null) {
+                    viewModel.getIsFriendResult().removeObserver(isFriendObserver);
+                }
 
-                binding.resultContainer.setVisibility(View.VISIBLE);
-                binding.tvNickname.setText(user.getNickname());
-                binding.tvUsername.setText("微信号: " + user.getUsername());
+                // 创建新的 Observer
+                isFriendObserver = isFriendResult -> {
+                    // 确保这个结果是针对当前搜索到的用户的
+                    if (currentStranger == null || !currentStranger.getUsername().equals(user.getUsername())) {
+                        Log.d("SearchUserActivity", "isFriendResult is for a stale search, skipping.");
+                        return;
+                    }
 
-                // TODO: 如果有 avatarUrl，用 Glide 加载头像
+                    if (isFriendResult == null || isFriendResult.data == null) {
+                        Log.d("SearchUserActivity", "isFriendResult or its data is null, skipping processing.");
+                        return;
+                    }
+
+                    boolean isFriend = isFriendResult.data;
+                    if (isFriend) {
+                        Log.d("SearchUserActivity", "isFriend: " + isFriend);
+                        Intent intent = new Intent(SearchUserActivity.this, FriendProfileActivity.class);
+                        intent.putExtra("FRIEND_USERNAME", user.getUsername());
+                        startActivity(intent);
+                    } else {
+                        Log.d("SearchUserActivity", "isFriend: " + isFriend);
+                        binding.resultContainer.setVisibility(View.VISIBLE);
+                        binding.tvNickname.setText(user.getNickname());
+                        binding.tvUsername.setText("微信号: " + user.getUsername());
+                        // TODO: 如果有 avatarUrl，用 Glide 加载头像
+                    }
+                };
+                // 注册新的 Observer
+                viewModel.getIsFriendResult().observe(this, isFriendObserver);
+                viewModel.isFriend(user.getUsername());
+
             }
         });
     }

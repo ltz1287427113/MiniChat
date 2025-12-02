@@ -57,6 +57,10 @@ public interface ApiService {
     @GET("friendApplication/searchStranger/{usernameOrEmail}")
     Call<ResponseMessage<StrangerResponse>> searchStranger(@Path("usernameOrEmail") String keyword);
 
+    //是否为好友
+    @GET("friendApplication/isFriend/{usernameOrEmail}")
+    Call<ResponseMessage<Boolean>> isFriend(@Path("usernameOrEmail") String usernameOrEmail);
+
     // 验证Token
     @POST("auth/update-token")
     // 替换成你后端实际的更新token接口路径

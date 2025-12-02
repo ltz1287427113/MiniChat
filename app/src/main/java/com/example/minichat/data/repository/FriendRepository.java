@@ -92,6 +92,31 @@ public class FriendRepository {
     }
 
     /**
+     * 判断是否为好友
+     */
+    public void isFriend(String usernameOrEmail, MutableLiveData<Result<Boolean>> resultLiveData) {
+        apiService.isFriend(usernameOrEmail).enqueue(new Callback<ResponseMessage<Boolean>>() {
+            @Override
+            public void onResponse(Call<ResponseMessage<Boolean>> call, Response<ResponseMessage<Boolean>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        resultLiveData.postValue(Result.success(response.body().getData()));
+                    } else {
+                        resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    resultLiveData.postValue(Result.failure(new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<Boolean>> call, Throwable t) {
+                resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
+            }
+        });
+    }
+
+    /**
      * 发送好友申请
      *
      * @param targetUsername 目标微信号 (搜索结果里的 username)
