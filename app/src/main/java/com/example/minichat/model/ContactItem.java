@@ -6,17 +6,21 @@ package com.example.minichat.model;
  * 并且字段名改为了 username 和 displayName，更符合业务。
  */
 public class ContactItem {
-
+    private  int friendUserid;
     private String username;    // 对应后端的 friendUsername
     private String displayName; // 对应后端的 friendRemark
     private String avatarUrl;   // 对应后端的 friendAvatarUrl
 
-    public ContactItem(String username, String displayName, String avatarUrl) {
+    public ContactItem(int friendUserid, String username, String displayName, String avatarUrl) {
+        this.friendUserid = friendUserid;
         this.username = username;
         this.displayName = displayName;
         this.avatarUrl = avatarUrl;
     }
 
+    public int getFriendUserid() {
+        return friendUserid;
+    }
     public String getUsername() { return username; }
     public String getDisplayName() { return displayName; }
     public String getAvatarUrl() { return avatarUrl; }

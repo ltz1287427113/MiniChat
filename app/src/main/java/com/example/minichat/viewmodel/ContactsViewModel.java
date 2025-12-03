@@ -89,7 +89,9 @@ public class ContactsViewModel extends AndroidViewModel {
                     Log.d("ContactsViewModel", "Friends in group " + group.getInitial() + ": " + group.getFriends().size());
                     for (FriendDTO friend : group.getFriends()) {
                         // [核心修改] 使用新的构造函数
-                        list.add(new ContactItem(friend.getFriendUsername(), // username
+                        list.add(new ContactItem(
+                                friend.getFriendUserid(),
+                                friend.getFriendUsername(), // username
                                 friend.getFriendRemark(),   // displayName
                                 friend.getFriendAvatarUrl() // avatarUrl
                         ));

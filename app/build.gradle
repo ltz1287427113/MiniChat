@@ -61,4 +61,13 @@ dependencies {
     // Glide 图片加载库
     implementation libs.glide
     annotationProcessor libs.compiler
+    // STOMP 协议客户端 (用于 WebSocket)
+    implementation libs.stompprotocolandroid
+    // RxJava (STOMP 库依赖它)
+    implementation libs.rxjava
+    implementation libs.rxandroid
+    // Stomp协议库
+//    implementation libs.stomp.protocol.android
+    // SockJS客户端
+    implementation libs.java.websocket
 }

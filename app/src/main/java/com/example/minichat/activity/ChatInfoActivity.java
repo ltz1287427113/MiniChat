@@ -61,18 +61,18 @@ public class ChatInfoActivity extends AppCompatActivity {
 
         if (isGroup) {
             // --- 群聊模式：添加多个假数据 ---
-            members.add(new ContactItem("1", "群主", null));
-            members.add(new ContactItem("2", "管理员", null));
-            members.add(new ContactItem("3", "小明", null));
-            members.add(new ContactItem("4", "小红", null));
-            members.add(new ContactItem("5", "小刚", null));
-            members.add(new ContactItem("6", "张三", null));
-            members.add(new ContactItem("7", "李四", null));
-            members.add(new ContactItem("8", "王五", null));
-            members.add(new ContactItem("9", "赵六", null));
+            members.add(new ContactItem(11,"1", "群主", null));
+            members.add(new ContactItem(22,"2", "管理员", null));
+            members.add(new ContactItem(33,"3", "小明", null));
+            members.add(new ContactItem(44,"4", "小红", null));
+            members.add(new ContactItem(55,"5", "小刚", null));
+            members.add(new ContactItem(66,"6", "张三", null));
+            members.add(new ContactItem(77,"7", "李四", null));
+            members.add(new ContactItem(88,"8", "王五", null));
+            members.add(new ContactItem(99,"9", "赵六", null));
         } else {
             // --- 私聊模式：只添加对方 ---
-            members.add(new ContactItem("id", remark, null));
+            members.add(new ContactItem(1,"id", remark, null));
         }
 
         // 初始化 Adapter

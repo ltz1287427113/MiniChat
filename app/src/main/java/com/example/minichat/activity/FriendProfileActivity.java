@@ -18,6 +18,7 @@ public class FriendProfileActivity extends AppCompatActivity {
     private ActivityFriendProfileBinding binding;
     private FriendProfileViewModel viewModel;
     private String friendUsername; // 当前查看的好友微信号
+    private int friendId; // 当前查看的好友 ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

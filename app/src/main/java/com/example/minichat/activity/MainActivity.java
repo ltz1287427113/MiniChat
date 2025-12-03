@@ -34,8 +34,13 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // [注释] (我们不再需要 applyWindowInsets 了,
-        //  因为 AppBarLayout 里的 fitsSystemWindows=true 会自动处理)
+        // [核心] 启动 WebSocket 连接
+        String token = com.example.minichat.utils.SpUtils.getToken(this);
+        Log.d("WebSocket", "token: " + token);
+        if (token != null) {
+            // 调用我们刚才写的 Manager
+            com.example.minichat.utils.WebSocketManager.getInstance().connect(token);
+        }
 
         // 4. 初始化 ViewPager2 (不变)
         adapter = new MainViewPagerAdapter(this);

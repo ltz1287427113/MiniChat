@@ -26,18 +26,23 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.minichat.R;
 import com.example.minichat.adapter.MessageAdapter;
 import com.example.minichat.data.local.MessageEntity;
+import com.example.minichat.data.model.enum_.ChatMessageTypeEnum;
+import com.example.minichat.data.model.response.ChatMessage;
 import com.example.minichat.databinding.ActivityChatDetailBinding;
+import com.example.minichat.utils.WebSocketManager;
 import com.example.minichat.viewmodel.ChatViewModel;
 
 import java.util.List;
 
-public class ChatDetailActivity extends AppCompatActivity {
+public class ChatDetailActivity extends AppCompatActivity implements WebSocketManager.OnMessageReceivedListener{
 
     private ActivityChatDetailBinding binding;
     private ChatViewModel viewModel;
     private MessageAdapter messageAdapter;
     private SharedPreferences prefs;
     private final String KEYBOARD_HEIGHT_KEY = "keyboard_height";
+    // 假设目标用户ID (需要从上个页面传过来)
+    private int targetUserId = 3; // 暂时写死，为了测试方便
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +57,8 @@ public class ChatDetailActivity extends AppCompatActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
 
+        // 2. [核心] 告诉 Manager：“我要听消息”
+        WebSocketManager.getInstance().addListener(this);
         setupToolbar();
         setupRecyclerView();
         observeViewModel();
@@ -132,7 +139,18 @@ public class ChatDetailActivity extends AppCompatActivity {
         binding.btnSend.setOnClickListener(v -> {
             String text = binding.etMessageInput.getText().toString();
             if (!text.isEmpty()) {
-                viewModel.sendMessage(text);
+                // A. 创建消息对象
+                ChatMessage msg = new ChatMessage(
+                        targetUserId, // 发给谁
+                        null,         // 群组ID (私聊为null)
+                        ChatMessageTypeEnum.PRIVATE_MESSAGE, // 类型
+                        text          // 内容
+                );
+
+                // B. 调用 Manager 发送
+                WebSocketManager.getInstance().sendMessage(msg);
+
+                // C. 清空输入框
                 binding.etMessageInput.setText("");
             }
         });
@@ -248,5 +266,28 @@ public class ChatDetailActivity extends AppCompatActivity {
         } else {
             binding.plusMenuPanel.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 3. [核心] 页面销毁时，告诉 Manager：“我不听了” (防止内存泄漏)
+        WebSocketManager.getInstance().removeListener(this);
+    }
+    // 4. [核心] 实现接口方法：收到消息时会跑这里
+    @Override
+    public void onMessageReceived(ChatMessage message) {
+        // 在主线程更新 UI
+        runOnUiThread(() -> {
+            // 这里简单弹个 Toast 验证一下
+            Toast.makeText(this, "收到消息: " + message.getContent(), Toast.LENGTH_SHORT).show();
+
+            // TODO: 将消息转为 MessageEntity 存入数据库 (ViewModel 会自动更新 UI)
+        });
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+        super.onPointerCaptureChanged(hasCapture);
     }
 }
