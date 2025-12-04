@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.minichat.R;
 import com.example.minichat.adapter.ChatMemberAdapter;
+import com.example.minichat.data.remote.ApiClient;
 import com.example.minichat.databinding.ActivityChatInfoBinding;
 import com.example.minichat.model.ContactItem;
 import com.example.minichat.viewmodel.ChatInfoViewModel;
@@ -193,7 +194,8 @@ public class ChatInfoActivity extends AppCompatActivity {
         currentDisplayName = friendDetail.getDisplayName();
         currentAvatarUrl = friendDetail.getAvatarUrl();
 
-        Log.d(TAG, "更新UI: displayName=" + currentDisplayName + ", avatarUrl=" + currentAvatarUrl);
+        Log.d("ChatInfoActivity", "更新UI: displayName=" + currentDisplayName + ", avatarUrl=" + currentAvatarUrl + ", rawAvatarUrl=" + friendDetail.getAvatarUrl());
+
 
         // 更新标题
         binding.toolbar.setTitle(currentDisplayName);

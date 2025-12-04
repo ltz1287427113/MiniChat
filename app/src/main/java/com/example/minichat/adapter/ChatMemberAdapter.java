@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.minichat.R;
 import com.example.minichat.model.ContactItem; // 复用之前的 ContactItem 模型
 
@@ -46,7 +47,8 @@ public class ChatMemberAdapter extends RecyclerView.Adapter<ChatMemberAdapter.Me
         } else {
             // --- 显示成员 ---
             ContactItem member = members.get(position);
-            holder.ivAvatar.setImageResource(R.mipmap.ic_launcher_round); // 占位头像
+            // 使用 UserDisplayUtils 加载头像
+            com.example.minichat.utils.UserDisplayUtils.loadAvatar(holder.itemView.getContext(), member.getAvatarUrl(), holder.ivAvatar);
             holder.ivAvatar.setBackground(null); // 清除背景
             holder.tvName.setText(member.getDisplayName());
 

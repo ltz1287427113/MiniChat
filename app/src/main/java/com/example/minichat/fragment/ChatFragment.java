@@ -39,6 +39,7 @@ public class ChatFragment extends Fragment {
     private ChatViewModel chatViewModel;
     private ContactsViewModel contactsViewModel; // [新增]
     private int myUserId;
+    private String targetUsername;
 
     // [新增] 用于缓存好友信息 (username -> 显示名称)
     private Map<String, FriendInfo> friendInfoMap = new HashMap<>();
@@ -88,7 +89,7 @@ public class ChatFragment extends Fragment {
 
                     // 使用username作为key（因为username是唯一的）
                     friendInfoMap.put(contact.getUsername(), info);
-
+                    targetUsername = contact.getUsername(); // 保存当前聊天对象
                     Log.d(TAG, "缓存好友信息: username=" + contact.getUsername() + ", displayName=" + info.displayName + ", userId=" + info.userId);
                 }
             }
@@ -137,7 +138,7 @@ public class ChatFragment extends Fragment {
 
             intent.putExtra("CHAT_NAME", session.getName());
             intent.putExtra("CHAT_ID", session.getId());
-
+            intent.putExtra("CHAT_USERNAME", targetUsername);
             startActivity(intent);
         });
     }
