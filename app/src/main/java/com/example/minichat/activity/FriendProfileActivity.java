@@ -31,6 +31,7 @@ public class FriendProfileActivity extends AppCompatActivity {
 
         // 1. 获取传递过来的 username (这是查询的关键)
         friendUsername = getIntent().getStringExtra("FRIEND_USERNAME");
+        friendId = getIntent().getIntExtra("FRIEND_ID", -1);
         if (friendUsername == null) {
             Toast.makeText(this, "用户信息错误", Toast.LENGTH_SHORT).show();
             finish();
@@ -80,6 +81,7 @@ public class FriendProfileActivity extends AppCompatActivity {
             // 跳转到聊天页面
             Intent intent = new Intent(this, ChatDetailActivity.class);
             // 传递必要参数
+            intent.putExtra("FRIEND_ID", friendId);
             intent.putExtra("CHAT_USERNAME", friendUsername); // 这里的 ID 其实就是 username
             // 传递显示的名字 (优先显示 UI 上那个大标题)
             intent.putExtra("CHAT_NAME", binding.tvName.getText().toString());

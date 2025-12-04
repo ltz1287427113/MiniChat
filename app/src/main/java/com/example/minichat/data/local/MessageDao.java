@@ -1,6 +1,6 @@
 package com.example.minichat.data.local;
 
-import androidx.lifecycle.LiveData; // [重要] 导入 LiveData
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -8,38 +8,40 @@ import androidx.room.Query;
 
 import java.util.List;
 
-/**
- * 数据访问对象 (DAO)。
- * Room 要求我们为 DAO 创建一个接口。
- */
 @Dao
 public interface MessageDao {
 
-    /**
-     * @Insert 告诉 Room 这是一个“插入”操作。
-     * onConflict = OnConflictStrategy.REPLACE：
-     * 如果插入的数据和已有的数据冲突 (例如 id 相同)，就用新的替换旧的。
-     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void insertMessage(MessageEntity message); // 插入一条消息
+    void insertMessage(MessageEntity message);
 
-    /**
-     * @Query 告诉 Room 这是一个“查询”操作。
-     * "SELECT * FROM messages_table ORDER BY timestamp ASC"：
-     * 这是一句 SQL 语句，意思是：
-     * 1. SELECT * ： 选中所有列
-     * 2. FROM messages_table ： 从 "messages_table" 这张表
-     * 3. ORDER BY timestamp ASC ： 按照 "timestamp" (时间戳) 升序 (ASC) 排列
-     *
-     * [核心] LiveData<List<MessageEntity>>：
-     * 我们返回一个 LiveData。Room 会“观察”这张表。
-     * 任何时候，只要 "messages_table" 里的数据变化了 (比如插入了新消息)，
-     * Room 就会自动更新这个 LiveData，我们的 UI 也会自动刷新！
-     */
-    @Query("SELECT * FROM messages_table ORDER BY timestamp ASC")
+    // 1. 查询私聊记录：(我发给他的) OR (他发给我的)
+    @Query("SELECT * FROM messages_table " +
+            "WHERE (senderId = :myId AND receiverId = :friendId) " +
+            "   OR (senderId = :friendId AND receiverId = :myId) " +
+            "ORDER BY id ASC")
+    LiveData<List<MessageEntity>> getPrivateMessages(int myId, int friendId);
+
+    // 2. 查询群聊记录：所有发到这个群的消息
+    @Query("SELECT * FROM messages_table WHERE groupId = :groupId ORDER BY id ASC")
+    LiveData<List<MessageEntity>> getGroupMessages(int groupId);
+
+    // (保留旧方法以防报错，但建议不再使用)
+    @Query("SELECT * FROM messages_table ORDER BY id ASC")
     LiveData<List<MessageEntity>> getAllMessages();
-
-    // (未来) 我们可以添加更复杂的查询，比如只查询和特定好友的聊天记录：
-    // @Query("SELECT * FROM messages_table WHERE senderId = :friendId OR receiverId = :friendId ORDER BY timestamp ASC")
-    // LiveData<List<MessageEntity>> getMessagesWithFriend(String friendId);
+    /**
+     * [新] 获取最近会话列表
+     * 逻辑：
+     * 1. 找出所有与我 (myId) 相关的消息
+     * 2. 按照“对方ID” (chatPartnerId) 分组
+     * 3. 取每组 timestamp 最大的那条
+     * 4. 按时间倒序排列
+     */
+    @Query("SELECT * FROM messages_table " +
+            "WHERE id IN (" +
+            "  SELECT MAX(id) FROM messages_table " +
+            "  WHERE senderId = :myId OR receiverId = :myId " +
+            "  GROUP BY CASE WHEN senderId = :myId THEN receiverId ELSE senderId END" +
+            ") " +
+            "ORDER BY createAt DESC")
+    LiveData<List<MessageEntity>> getRecentSessions(int myId);
 }

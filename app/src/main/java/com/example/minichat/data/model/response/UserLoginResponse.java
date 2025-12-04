@@ -1,7 +1,7 @@
 package com.example.minichat.data.model.response;
 
 public class UserLoginResponse {
-    private String userId;
+    private int userId;
     private String username;
     private String email;
     private String nickname;
@@ -9,7 +9,7 @@ public class UserLoginResponse {
 
     // Getters
 
-    public String getUserId() {
+    public int getUserId() {
         return userId;
     }
 

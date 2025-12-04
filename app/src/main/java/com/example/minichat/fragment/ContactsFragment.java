@@ -85,6 +85,7 @@ public class ContactsFragment extends Fragment implements ContactsAdapter.OnItem
             ContactItem contactItem = (ContactItem) item;
             Log.d("ContactsFragment", "Clicked ContactItem with username: " + contactItem.getUsername());
             Intent intent = new Intent(getActivity(), FriendProfileActivity.class);
+            intent.putExtra("FRIEND_ID", contactItem.getFriendUserid());
             intent.putExtra("FRIEND_USERNAME", contactItem.getUsername());
             startActivity(intent);
         }

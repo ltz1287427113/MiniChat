@@ -1,5 +1,7 @@
 package com.example.minichat.activity;
 
+import static java.lang.Integer.parseInt;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,45 +32,80 @@ import com.example.minichat.data.local.MessageEntity;
 import com.example.minichat.data.model.enum_.ChatMessageTypeEnum;
 import com.example.minichat.data.model.response.ChatMessage;
 import com.example.minichat.databinding.ActivityChatDetailBinding;
+import com.example.minichat.utils.SpUtils;
 import com.example.minichat.utils.WebSocketManager;
 import com.example.minichat.viewmodel.ChatViewModel;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class ChatDetailActivity extends AppCompatActivity implements WebSocketManager.OnMessageReceivedListener{
 
+    private static final Logger log = LoggerFactory.getLogger(ChatDetailActivity.class);
     private ActivityChatDetailBinding binding;
     private ChatViewModel viewModel;
     private MessageAdapter messageAdapter;
     private SharedPreferences prefs;
     private final String KEYBOARD_HEIGHT_KEY = "keyboard_height";
-    // 假设目标用户ID (需要从上个页面传过来)
-    private int targetUserId = 3; // 暂时写死，为了测试方便
+    private int myUserId;
+    private int targetId; // 对方ID (私聊) 或 群ID (群聊)
+    private boolean isGroup; // 是否是群聊
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         // [新] 1. 开启 Edge-to-Edge (替换掉 fitsSystemWindows="true")
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
         binding = ActivityChatDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        int myIdStr = SpUtils.getUser(this).getUserId();
+        try {
+            myUserId = parseInt(String.valueOf(myIdStr));
+        } catch (NumberFormatException e) {
+            myUserId = 0; // 异常处理
+        }
+
+        // TODO 判断是否是群聊
+        targetId = getIntent().getIntExtra("FRIEND_ID", -1);
+        isGroup = false; // 暂时默认私聊
+
         viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
 
         // 2. [核心] 告诉 Manager：“我要听消息”
         WebSocketManager.getInstance().addListener(this);
+
         setupToolbar();
         setupRecyclerView();
         observeViewModel();
         setupInputControls();
+        setupMessageList();
 
+        // 3. [核心] 观察数据库数据
+        observeChatData();
         // [新] 2. 设置键盘和面板的监听
         setupKeyboardAndPanelListener();
     }
 
+    private void observeChatData() {
+        // 只加载“我和他”的聊天记录
+        viewModel.getChatHistory(myUserId, targetId, isGroup).observe(this, messages -> {
+            // 数据库变动 -> 自动更新 UI
+            messageAdapter.setMessages(messages);
+            if (messages != null && !messages.isEmpty()) {
+                binding.rvMessageList.scrollToPosition(messages.size() - 1);
+            }
+        });
+    }
+    private void setupMessageList() {
+        messageAdapter = new MessageAdapter();
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        binding.rvMessageList.setLayoutManager(layoutManager);
+        binding.rvMessageList.setAdapter(messageAdapter);
+    }
     private void setupToolbar() {
         String chatName = getIntent().getStringExtra("CHAT_NAME");
         String chatUserName = getIntent().getStringExtra("CHAT_USERNAME");
@@ -102,7 +140,7 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
     }
 
     private void observeViewModel() {
-        viewModel.getMessages().observe(this, new Observer<List<MessageEntity>>() {
+        viewModel.getRecentSessionList(3).observe(this, new Observer<List<MessageEntity>>() {
             @Override
             public void onChanged(List<MessageEntity> messages) {
                 messageAdapter.setMessages(messages);
@@ -113,17 +151,10 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         });
     }
 
-    // [修改] 移除了 setOnClickListener
     private void setupInputControls() {
         binding.etMessageInput.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
@@ -139,18 +170,22 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         binding.btnSend.setOnClickListener(v -> {
             String text = binding.etMessageInput.getText().toString();
             if (!text.isEmpty()) {
-                // A. 创建消息对象
+                // A. 创建消息对象 (用于发送)
                 ChatMessage msg = new ChatMessage(
-                        targetUserId, // 发给谁
-                        null,         // 群组ID (私聊为null)
-                        ChatMessageTypeEnum.PRIVATE_MESSAGE, // 类型
-                        text          // 内容
+                        targetId, // 接收者
+                        null,     // groupId
+                        ChatMessageTypeEnum.PRIVATE_MESSAGE,
+                        text
                 );
 
-                // B. 调用 Manager 发送
+                // B. WebSocket 发送
                 WebSocketManager.getInstance().sendMessage(msg);
 
-                // C. 清空输入框
+                // C. [关键] 也要存入本地数据库，这样 UI 才会立即显示“我发的消息”
+                // 我们需要手动构造一个完整的 ChatMessage (补全 senderId) 存入本地
+                msg.setSenderId(myUserId);
+                viewModel.saveMessageToLocal(msg);
+
                 binding.etMessageInput.setText("");
             }
         });
@@ -279,10 +314,8 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
     public void onMessageReceived(ChatMessage message) {
         // 在主线程更新 UI
         runOnUiThread(() -> {
-            // 这里简单弹个 Toast 验证一下
-            Toast.makeText(this, "收到消息: " + message.getContent(), Toast.LENGTH_SHORT).show();
-
-            // TODO: 将消息转为 MessageEntity 存入数据库 (ViewModel 会自动更新 UI)
+            // 存入数据库 -> LiveData 自动更新 UI
+            viewModel.saveMessageToLocal(message);
         });
     }
 
