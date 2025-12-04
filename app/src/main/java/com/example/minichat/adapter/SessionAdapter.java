@@ -5,39 +5,50 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.minichat.R;
-import com.example.minichat.model.Session; // [导入我们自己的 Session]
+import com.example.minichat.model.Session;
+import com.example.minichat.utils.UserDisplayUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 这是一个“愚蠢的”适配器。它只负责显示 List<Session>。
- * 它不调用 API，也不处理业务逻辑。
+ * [改进版] 会话列表适配器
+ * 1. 支持头像显示
+ * 2. 优化数据更新
  */
 public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionViewHolder> {
 
-    // 数据源
-    private List<Session> sessions;
-
-    // (点击事件的回调接口)
+    private List<Session> sessions = new ArrayList<>();
     private OnSessionClickListener listener;
 
-    // (构造函数，接收数据)
     public SessionAdapter(List<Session> sessions) {
-        this.sessions = sessions;
+        this.sessions = sessions != null ? sessions : new ArrayList<>();
     }
 
-    // (设置点击监听)
     public void setOnSessionClickListener(OnSessionClickListener listener) {
         this.listener = listener;
+    }
+
+    /**
+     * [新增] 更新数据的方法
+     */
+    public void updateSessions(List<Session> newSessions) {
+        this.sessions.clear();
+        if (newSessions != null) {
+            this.sessions.addAll(newSessions);
+        }
+        notifyDataSetChanged();
     }
 
     @NonNull
     @Override
     public SessionViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_session, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_session, parent, false);
         return new SessionViewHolder(view);
     }
 
@@ -46,7 +57,6 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
         Session session = sessions.get(position);
         holder.bind(session);
 
-        // 绑定点击事件
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onSessionClick(session);
@@ -59,7 +69,6 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
         return sessions.size();
     }
 
-    // --- ViewHolder ---
     static class SessionViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvLastMessage, tvTime;
         ImageView ivAvatar;
@@ -76,10 +85,14 @@ public class SessionAdapter extends RecyclerView.Adapter<SessionAdapter.SessionV
             tvName.setText(session.getName());
             tvLastMessage.setText(session.getLastMessage());
             tvTime.setText(session.getTime());
+
+            // [新增] 加载头像
+            if (session.getAvatarUrl() != null && !session.getAvatarUrl().isEmpty()) {
+                UserDisplayUtils.loadAvatar(itemView.getContext(), session.getAvatarUrl(), ivAvatar);
+            }
         }
     }
 
-    // --- 点击事件接口 ---
     public interface OnSessionClickListener {
         void onSessionClick(Session session);
     }

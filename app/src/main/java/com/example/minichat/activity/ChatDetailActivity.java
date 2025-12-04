@@ -1,7 +1,5 @@
 package com.example.minichat.activity;
 
-import static java.lang.Integer.parseInt;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -15,14 +13,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat; // [新导入]
-import androidx.core.view.WindowInsetsCompat; // [新导入]
-import androidx.core.graphics.Insets; // [新导入]
-import androidx.lifecycle.Observer;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.graphics.Insets;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
@@ -35,103 +31,107 @@ import com.example.minichat.databinding.ActivityChatDetailBinding;
 import com.example.minichat.utils.SpUtils;
 import com.example.minichat.utils.WebSocketManager;
 import com.example.minichat.viewmodel.ChatViewModel;
+import com.example.minichat.viewmodel.FriendProfileViewModel;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+/**
+ * [优化版] ChatDetailActivity
+ * 改进：从好友详情获取正确的备注名称
+ */
+public class ChatDetailActivity extends AppCompatActivity implements WebSocketManager.OnMessageReceivedListener {
 
-import java.util.List;
-
-public class ChatDetailActivity extends AppCompatActivity implements WebSocketManager.OnMessageReceivedListener{
-
-    private static final Logger log = LoggerFactory.getLogger(ChatDetailActivity.class);
+    private static final String TAG = "ChatDetailActivity";
     private ActivityChatDetailBinding binding;
-    private ChatViewModel viewModel;
+    private ChatViewModel chatViewModel;
+    private FriendProfileViewModel friendViewModel; // [新增]
     private MessageAdapter messageAdapter;
     private SharedPreferences prefs;
     private final String KEYBOARD_HEIGHT_KEY = "keyboard_height";
     private int myUserId;
-    private int targetId; // 对方ID (私聊) 或 群ID (群聊)
-    private boolean isGroup; // 是否是群聊
+    private int targetId;
+    private String targetUsername; // [新增]
+    private boolean isGroup;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // [新] 1. 开启 Edge-to-Edge (替换掉 fitsSystemWindows="true")
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         binding = ActivityChatDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        int myIdStr = SpUtils.getUser(this).getUserId();
-        try {
-            myUserId = parseInt(String.valueOf(myIdStr));
-        } catch (NumberFormatException e) {
-            myUserId = 0; // 异常处理
+        myUserId = SpUtils.getUser(this).getUserId();
+
+        // 获取Intent数据
+        targetId = getIntent().getIntExtra("FRIEND_ID", -1);
+        targetUsername = getIntent().getStringExtra("CHAT_USERNAME"); // [新增]
+        isGroup = false;
+
+        String chatName = getIntent().getStringExtra("CHAT_NAME");
+
+        Log.d(TAG, "当前用户ID: " + myUserId);
+        Log.d(TAG, "目标用户ID: " + targetId);
+        Log.d(TAG, "目标用户名: " + targetUsername);
+
+        if (targetId == -1) {
+            finish();
+            return;
         }
 
-        // TODO 判断是否是群聊
-        targetId = getIntent().getIntExtra("FRIEND_ID", -1);
-        isGroup = false; // 暂时默认私聊
+        chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
+        friendViewModel = new ViewModelProvider(this).get(FriendProfileViewModel.class);
 
-        viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
-
-        // 2. [核心] 告诉 Manager：“我要听消息”
         WebSocketManager.getInstance().addListener(this);
 
-        setupToolbar();
         setupRecyclerView();
-        observeViewModel();
         setupInputControls();
-        setupMessageList();
-
-        // 3. [核心] 观察数据库数据
-        observeChatData();
-        // [新] 2. 设置键盘和面板的监听
         setupKeyboardAndPanelListener();
-    }
+        observeChatData();
 
-    private void observeChatData() {
-        // 只加载“我和他”的聊天记录
-        viewModel.getChatHistory(myUserId, targetId, isGroup).observe(this, messages -> {
-            // 数据库变动 -> 自动更新 UI
-            messageAdapter.setMessages(messages);
-            if (messages != null && !messages.isEmpty()) {
-                binding.rvMessageList.scrollToPosition(messages.size() - 1);
-            }
-        });
-    }
-    private void setupMessageList() {
-        messageAdapter = new MessageAdapter();
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true);
-        binding.rvMessageList.setLayoutManager(layoutManager);
-        binding.rvMessageList.setAdapter(messageAdapter);
-    }
-    private void setupToolbar() {
-        String chatName = getIntent().getStringExtra("CHAT_NAME");
-        String chatUserName = getIntent().getStringExtra("CHAT_USERNAME");
-        if (chatName != null) {
-            binding.toolbar.setTitle(chatName);
+        // [核心改进] 如果有username，获取最新的好友信息（包括备注）
+        if (targetUsername != null && !targetUsername.isEmpty()) {
+            loadFriendInfo(targetUsername, chatName);
+        } else {
+            setupToolbar(chatName);
         }
-        binding.toolbar.setNavigationOnClickListener(v -> finish());
-        binding.toolbar.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.menu_chat_settings) {
-                Toast.makeText(this, "点击了聊天设置", Toast.LENGTH_SHORT).show();
-                return true;
+    }
+
+    /**
+     * [新增] 加载好友信息，获取正确的备注名称
+     */
+    private void loadFriendInfo(String username, String fallbackName) {
+        friendViewModel.getFriendDetailResult().observe(this, result -> {
+            if (result.error != null) {
+                Log.e(TAG, "加载好友信息失败: " + result.error.getMessage());
+                setupToolbar(fallbackName); // 使用传入的名字作为后备
+            } else if (result.data != null) {
+                // [核心] 使用 getDisplayName() 获取备注或昵称
+                String displayName = result.data.getDisplayName();
+                Log.d(TAG, "加载到好友备注: " + displayName);
+                setupToolbar(displayName);
             }
-            return false;
         });
 
+        friendViewModel.loadFriendDetail(username);
+    }
+
+    private void setupToolbar(String chatName) {
+        if (chatName != null && !chatName.isEmpty()) {
+            binding.toolbar.setTitle(chatName);
+            Log.d(TAG, "设置标题: " + chatName);
+        }
+
+        binding.toolbar.setNavigationOnClickListener(v -> finish());
+
         binding.toolbar.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.menu_chat_settings) {
-                // [修改] 跳转到聊天信息页面
-                Intent intent = new Intent(this, ChatInfoActivity.class);
-                // 把当前聊天的名字传过去，方便显示
-                intent.putExtra("CHAT_NAME", chatName);
-                intent.putExtra("CHAT_USERNAME", chatUserName);
-                // 传递 CHAT_ID，用于清空指定记录和删除好友
-                intent.putExtra("CHAT_ID", getIntent().getStringExtra("CHAT_ID"));
+            if (item.getItemId() == R.id.menu_chat_settings) {
+                Intent intent = new Intent(this, com.example.minichat.activity.ChatInfoActivity.class);
+
+                // [修复] 使用标准的Intent参数传递
+                intent.putExtra(com.example.minichat.activity.ChatInfoActivity.EXTRA_FRIEND_ID, targetId);
+                intent.putExtra(com.example.minichat.activity.ChatInfoActivity.EXTRA_FRIEND_USERNAME, targetUsername);
+
+                Log.d(TAG, "打开ChatInfoActivity: friendId=" + targetId + ", friendUsername=" + targetUsername);
+
                 startActivity(intent);
                 return true;
             }
@@ -139,22 +139,47 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         });
     }
 
-    private void observeViewModel() {
-        viewModel.getRecentSessionList(3).observe(this, new Observer<List<MessageEntity>>() {
-            @Override
-            public void onChanged(List<MessageEntity> messages) {
-                messageAdapter.setMessages(messages);
-                if (messages != null && !messages.isEmpty()) {
-                    binding.rvMessageList.scrollToPosition(messages.size() - 1);
+    private void observeChatData() {
+        chatViewModel.getChatHistory(myUserId, targetId, isGroup).observe(this, messages -> {
+            Log.d(TAG, "收到消息列表，数量: " + (messages != null ? messages.size() : 0));
+
+            messageAdapter.setMessages(messages);
+            if (messages != null && !messages.isEmpty()) {
+                binding.rvMessageList.scrollToPosition(messages.size() - 1);
+            }
+        });
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void setupRecyclerView() {
+        messageAdapter = new MessageAdapter(myUserId);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setStackFromEnd(true);
+        binding.rvMessageList.setLayoutManager(layoutManager);
+        binding.rvMessageList.setAdapter(messageAdapter);
+
+        binding.rvMessageList.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                hideKeyboard();
+                if (binding.plusMenuPanel.getVisibility() == View.VISIBLE) {
+                    binding.plusMenuPanel.setVisibility(View.GONE);
                 }
             }
+            return false;
         });
     }
 
     private void setupInputControls() {
         binding.etMessageInput.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
             @Override
             public void afterTextChanged(Editable s) {
                 if (s.toString().isEmpty()) {
@@ -168,24 +193,9 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         });
 
         binding.btnSend.setOnClickListener(v -> {
-            String text = binding.etMessageInput.getText().toString();
+            String text = binding.etMessageInput.getText().toString().trim();
             if (!text.isEmpty()) {
-                // A. 创建消息对象 (用于发送)
-                ChatMessage msg = new ChatMessage(
-                        targetId, // 接收者
-                        null,     // groupId
-                        ChatMessageTypeEnum.PRIVATE_MESSAGE,
-                        text
-                );
-
-                // B. WebSocket 发送
-                WebSocketManager.getInstance().sendMessage(msg);
-
-                // C. [关键] 也要存入本地数据库，这样 UI 才会立即显示“我发的消息”
-                // 我们需要手动构造一个完整的 ChatMessage (补全 senderId) 存入本地
-                msg.setSenderId(myUserId);
-                viewModel.saveMessageToLocal(msg);
-
+                sendMessage(text);
                 binding.etMessageInput.setText("");
             }
         });
@@ -193,80 +203,48 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         binding.btnMore.setOnClickListener(v -> handlePlusButtonClick());
     }
 
-    @SuppressLint("ClickableViewAccessibility")
-    private void setupRecyclerView() {
-        messageAdapter = new MessageAdapter();
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true);
-        binding.rvMessageList.setLayoutManager(layoutManager);
-        binding.rvMessageList.setAdapter(messageAdapter);
+    private void sendMessage(String text) {
+        ChatMessage msg = new ChatMessage(targetId, null, ChatMessageTypeEnum.PRIVATE_MESSAGE, text);
 
-        binding.rvMessageList.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                    hideKeyboard();
-                    if (binding.plusMenuPanel.getVisibility() == View.VISIBLE) {
-                        binding.plusMenuPanel.setVisibility(View.GONE);
-                    }
-                }
-                return false;
-            }
-        });
+        msg.setSenderId(myUserId);
+
+        Log.d(TAG, "发送消息: " + text + ", targetId=" + targetId);
+
+        WebSocketManager.getInstance().sendMessage(msg);
+        chatViewModel.saveMessageToLocal(msg);
     }
 
-    // [新方法] 监听键盘，动态设置高度
     private void setupKeyboardAndPanelListener() {
-        // 1. 从“本地存储”读取上次保存的键盘高度
         int lastKeyboardHeight = prefs.getInt(KEYBOARD_HEIGHT_KEY, 0);
         if (lastKeyboardHeight > 0) {
             setPanelHeight(lastKeyboardHeight);
         }
 
-        // 3. 在“根视图”上添加一个监听器
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (v, insets) -> {
-
-            // 4. [修复] 获取系统栏(状态栏)和键盘(IME)的 Insets
             Insets systemBarInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             Insets imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime());
-
-            // 5. [修复] 检查键盘是否可见
             boolean isImeVisible = insets.isVisible(WindowInsetsCompat.Type.ime());
             int imeHeight = imeInsets.bottom;
 
-            // 6. [修复] 手动处理 Toolbar 的顶部边距
             ViewGroup.MarginLayoutParams toolbarParams = (ViewGroup.MarginLayoutParams) binding.toolbar.getLayoutParams();
             toolbarParams.topMargin = systemBarInsets.top;
             binding.toolbar.setLayoutParams(toolbarParams);
 
-            if (isImeVisible) {
-                // 键盘弹出了
-                if (imeHeight > 0) {
-                    // 7. [修复] 测量到了高度！保存并应用
-                    prefs.edit().putInt(KEYBOARD_HEIGHT_KEY, imeHeight).apply();
-                    setPanelHeight(imeHeight);
-                }
-
-                // 8. [核心修复]
-                // 键盘弹出时，强制隐藏功能面板
-                // 这就实现了“键盘覆盖菜单”
+            if (isImeVisible && imeHeight > 0) {
+                prefs.edit().putInt(KEYBOARD_HEIGHT_KEY, imeHeight).apply();
+                setPanelHeight(imeHeight);
                 if (binding.plusMenuPanel.getVisibility() == View.VISIBLE) {
                     binding.plusMenuPanel.setVisibility(View.GONE);
                 }
             }
 
-            // 9. [核心修复]
-            // 将键盘的高度(imeHeight)或系统导航栏的高度(systemBarInsets.bottom)
-            // 作为 *底部内边距* 应用到 *根视图*
-            // 这会把 input_layout 和 plus_menu_panel 一起“推”上来
             int bottomPadding = isImeVisible ? imeHeight : systemBarInsets.bottom;
             v.setPadding(0, 0, 0, bottomPadding);
 
-            return WindowInsetsCompat.CONSUMED; // 我们已经处理了所有 Insets
+            return WindowInsetsCompat.CONSUMED;
         });
     }
 
-    // [新方法] 统一设置面板高度
     private void setPanelHeight(int height) {
         ViewGroup.LayoutParams params = binding.plusMenuPanel.getLayoutParams();
         if (params.height != height) {
@@ -275,7 +253,6 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         }
     }
 
-    // [新方法] 隐藏软键盘
     private void hideKeyboard() {
         View view = this.getCurrentFocus();
         if (view != null) {
@@ -284,18 +261,14 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
         }
     }
 
-    // [修改] 处理“更多”按钮点击
     private void handlePlusButtonClick() {
-        // 1. 在显示面板 *之前*，确保它有正确的高度
         int lastKeyboardHeight = prefs.getInt(KEYBOARD_HEIGHT_KEY, 0);
-        int defaultPanelHeight = (int) (250 * getResources().getDisplayMetrics().density); // 默认 250dp
+        int defaultPanelHeight = (int) (250 * getResources().getDisplayMetrics().density);
         int panelHeight = (lastKeyboardHeight > 0) ? lastKeyboardHeight : defaultPanelHeight;
         setPanelHeight(panelHeight);
 
-        // 2. 隐藏键盘 (保持不变)
         hideKeyboard();
 
-        // 3. 切换面板可见性 (保持不变)
         if (binding.plusMenuPanel.getVisibility() == View.VISIBLE) {
             binding.plusMenuPanel.setVisibility(View.GONE);
         } else {
@@ -306,21 +279,15 @@ public class ChatDetailActivity extends AppCompatActivity implements WebSocketMa
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // 3. [核心] 页面销毁时，告诉 Manager：“我不听了” (防止内存泄漏)
         WebSocketManager.getInstance().removeListener(this);
-    }
-    // 4. [核心] 实现接口方法：收到消息时会跑这里
-    @Override
-    public void onMessageReceived(ChatMessage message) {
-        // 在主线程更新 UI
-        runOnUiThread(() -> {
-            // 存入数据库 -> LiveData 自动更新 UI
-            viewModel.saveMessageToLocal(message);
-        });
     }
 
     @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        super.onPointerCaptureChanged(hasCapture);
+    public void onMessageReceived(ChatMessage message) {
+        Log.d(TAG, "收到WebSocket消息: " + message.getContent());
+
+        runOnUiThread(() -> {
+            chatViewModel.saveMessageToLocal(message);
+        });
     }
 }

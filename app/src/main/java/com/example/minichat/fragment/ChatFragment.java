@@ -2,6 +2,7 @@ package com.example.minichat.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,16 +20,28 @@ import com.example.minichat.databinding.FragmentChatBinding;
 import com.example.minichat.model.Session;
 import com.example.minichat.utils.SpUtils;
 import com.example.minichat.viewmodel.ChatViewModel;
+import com.example.minichat.viewmodel.ContactsViewModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+/**
+ * [修复版] 聊天列表Fragment
+ * 核心改进：从好友列表获取备注名称
+ */
 public class ChatFragment extends Fragment {
 
+    private static final String TAG = "ChatFragment";
     private FragmentChatBinding binding;
     private SessionAdapter sessionAdapter;
-    private ChatViewModel viewModel;
+    private ChatViewModel chatViewModel;
+    private ContactsViewModel contactsViewModel; // [新增]
     private int myUserId;
+
+    // [新增] 用于缓存好友信息 (username -> 显示名称)
+    private Map<String, FriendInfo> friendInfoMap = new HashMap<>();
 
     @Nullable
     @Override
@@ -41,25 +54,66 @@ public class ChatFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 获取自己的 ID
         myUserId = SpUtils.getUser(getContext()).getUserId();
+        Log.d(TAG, "当前用户ID: " + myUserId);
 
-        // 初始化列表 (先给个空的)
         setupRecyclerView();
 
-        // 初始化 ViewModel
-        viewModel = new ViewModelProvider(this).get(ChatViewModel.class);
+        chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
+        contactsViewModel = new ViewModelProvider(this).get(ContactsViewModel.class);
 
-        // [核心] 观察数据库中的会话列表
-        viewModel.getRecentSessionList(myUserId).observe(getViewLifecycleOwner(), messageEntities -> {
-            // 将 MessageEntity 转换为 Session 对象
+        // [新增] 先加载好友列表，构建缓存
+        loadFriendsInfo();
+    }
+
+    /**
+     * [核心新增] 加载好友列表，构建本地缓存
+     */
+    private void loadFriendsInfo() {
+        contactsViewModel.getContactList().observe(getViewLifecycleOwner(), items -> {
+            if (items == null) return;
+
+            // 清空旧缓存
+            friendInfoMap.clear();
+
+            // 遍历好友列表，构建缓存
+            for (Object item : items) {
+                if (item instanceof com.example.minichat.model.ContactItem) {
+                    com.example.minichat.model.ContactItem contact = (com.example.minichat.model.ContactItem) item;
+
+                    FriendInfo info = new FriendInfo();
+                    info.displayName = contact.getDisplayName(); // 这是备注或昵称
+                    info.avatarUrl = contact.getAvatarUrl();
+                    info.userId = contact.getFriendUserid();
+
+                    // 使用username作为key（因为username是唯一的）
+                    friendInfoMap.put(contact.getUsername(), info);
+
+                    Log.d(TAG, "缓存好友信息: username=" + contact.getUsername() + ", displayName=" + info.displayName + ", userId=" + info.userId);
+                }
+            }
+
+            Log.d(TAG, "好友信息缓存完成，共 " + friendInfoMap.size() + " 个好友");
+
+            // 好友列表加载完成后，再加载会话列表
+            loadSessions();
+        });
+
+        // 触发加载好友列表（不需要功能项）
+        contactsViewModel.loadContacts(false);
+    }
+
+    /**
+     * [新增] 加载会话列表
+     */
+    private void loadSessions() {
+        chatViewModel.getRecentSessionList(myUserId).observe(getViewLifecycleOwner(), messageEntities -> {
+            Log.d(TAG, "收到会话列表，数量: " + (messageEntities != null ? messageEntities.size() : 0));
+
             List<Session> sessions = convertToSessions(messageEntities);
+            Log.d(TAG, "转换后的会话数: " + sessions.size());
 
-            // 更新 UI
-            // (SessionAdapter 需要添加一个 updateData 方法，或者重新 setAdapter)
-            sessionAdapter = new SessionAdapter(sessions);
-            binding.rvSessionList.setAdapter(sessionAdapter);
-            setupClickEvent(); // 重新绑定点击事件
+            sessionAdapter.updateSessions(sessions);
         });
     }
 
@@ -67,43 +121,123 @@ public class ChatFragment extends Fragment {
         binding.rvSessionList.setLayoutManager(new LinearLayoutManager(getContext()));
         sessionAdapter = new SessionAdapter(new ArrayList<>());
         binding.rvSessionList.setAdapter(sessionAdapter);
-    }
 
-    private void setupClickEvent() {
         sessionAdapter.setOnSessionClickListener(session -> {
+            Log.d(TAG, "点击会话: " + session.getName() + ", ID=" + session.getId());
+
             Intent intent = new Intent(getActivity(), ChatDetailActivity.class);
-            intent.putExtra("CHAT_ID", session.getId());     // 传 ID (String)
-            intent.putExtra("CHAT_NAME", session.getName()); // 传名字
+
+            try {
+                int friendId = Integer.parseInt(session.getId());
+                intent.putExtra("FRIEND_ID", friendId);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "会话ID转换失败: " + session.getId());
+                return;
+            }
+
+            intent.putExtra("CHAT_NAME", session.getName());
+            intent.putExtra("CHAT_ID", session.getId());
+
             startActivity(intent);
         });
     }
 
     /**
-     * 将数据库消息转换为会话列表 UI 模型
+     * [核心改进] 将数据库消息转换为会话列表
+     * 优先使用好友备注名称
      */
     private List<Session> convertToSessions(List<MessageEntity> messages) {
-        List<Session> list = new ArrayList<>();
-        for (MessageEntity msg : messages) {
-            // 判断对方是谁
-            int otherId = (msg.senderId == myUserId) ? msg.receiverId : msg.senderId;
-
-            // TODO: 这里我们暂时只有 ID，没有对方的名字和头像
-            // 实际项目中需要查 User 表。现在先用 ID 代替名字。
-            String name = "用户 " + otherId;
-
-            list.add(new Session(
-                    String.valueOf(otherId),
-                    name,
-                    msg.content,
-                    msg.createAt
-            ));
+        if (messages == null || messages.isEmpty()) {
+            return new ArrayList<>();
         }
-        return list;
+
+        Map<Integer, Session> sessionMap = new HashMap<>();
+
+        for (MessageEntity msg : messages) {
+            int otherId;
+            String otherName = null;
+            String otherAvatar = null;
+
+            if (msg.senderId == myUserId) {
+                // 我发送的消息，对方是接收者
+                otherId = msg.receiverId != null ? msg.receiverId : 0;
+
+                // [核心改进] 从缓存中查找好友信息
+                FriendInfo friendInfo = findFriendInfoByUserId(otherId);
+                if (friendInfo != null) {
+                    otherName = friendInfo.displayName;
+                    otherAvatar = friendInfo.avatarUrl;
+                    Log.d(TAG, "从缓存获取好友信息: userId=" + otherId + ", name=" + otherName);
+                } else {
+                    otherName = msg.receiverNickname;
+                    otherAvatar = msg.receiverAvatarUrl;
+                }
+            } else {
+                // 我接收的消息，对方是发送者
+                otherId = msg.senderId != null ? msg.senderId : 0;
+
+                // [核心改进] 从缓存中查找好友信息
+                FriendInfo friendInfo = findFriendInfoByUserId(otherId);
+                if (friendInfo != null) {
+                    otherName = friendInfo.displayName;
+                    otherAvatar = friendInfo.avatarUrl;
+                    Log.d(TAG, "从缓存获取好友信息: userId=" + otherId + ", name=" + otherName);
+                } else {
+                    otherName = msg.senderNickname;
+                    otherAvatar = msg.senderAvatarUrl;
+                }
+            }
+
+            if (otherId == 0) continue;
+
+            if (!sessionMap.containsKey(otherId)) {
+                String displayName = (otherName != null && !otherName.isEmpty()) ? otherName : "用户 " + otherId;
+
+                Session session = new Session(String.valueOf(otherId), displayName, msg.content != null ? msg.content : "", formatTime(msg.createAt), otherAvatar);
+
+                sessionMap.put(otherId, session);
+
+                Log.d(TAG, "创建会话: " + displayName + ", userId=" + otherId);
+            }
+        }
+
+        return new ArrayList<>(sessionMap.values());
+    }
+
+    /**
+     * [新增] 根据userId查找好友信息
+     */
+    private FriendInfo findFriendInfoByUserId(int userId) {
+        for (FriendInfo info : friendInfoMap.values()) {
+            if (info.userId == userId) {
+                return info;
+            }
+        }
+        return null;
+    }
+
+    private String formatTime(String createAt) {
+        if (createAt == null) return "";
+
+        if (createAt.length() >= 16) {
+            return createAt.substring(11, 16);
+        }
+
+        return createAt;
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    /**
+     * [新增] 好友信息内部类
+     */
+    private static class FriendInfo {
+        String displayName;
+        String avatarUrl;
+        int userId;
     }
 }

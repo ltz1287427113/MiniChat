@@ -1,9 +1,12 @@
 package com.example.minichat.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -17,13 +20,37 @@ import com.example.minichat.viewmodel.ChatInfoViewModel;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * [重构版] 聊天信息页面
+ * <p>
+ * 数据来源：
+ * - 从Intent接收：friendId, friendUsername
+ * - 从ViewModel加载：好友的详细信息（备注、昵称、头像等）
+ * <p>
+ * 功能：
+ * - 显示好友信息
+ * - 查找聊天记录（TODO）
+ * - 清空聊天记录（TODO）
+ * - 修改好友备注
+ * - 删除好友
+ */
 public class ChatInfoActivity extends AppCompatActivity {
+
+    private static final String TAG = "ChatInfoActivity";
+
+    // Intent参数的Key
+    public static final String EXTRA_FRIEND_ID = "EXTRA_FRIEND_ID";
+    public static final String EXTRA_FRIEND_USERNAME = "EXTRA_FRIEND_USERNAME";
 
     private ActivityChatInfoBinding binding;
     private ChatMemberAdapter memberAdapter;
     private ChatInfoViewModel viewModel;
-    private String friendUsername; // 当前聊天对象的 username
-    private String chatName; // 当前聊天对象的名称
+
+    // 好友信息
+    private int friendId;
+    private String friendUsername;
+    private String currentDisplayName; // 当前显示的名称（备注或昵称）
+    private String currentAvatarUrl;   // 当前头像URL
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,110 +58,182 @@ public class ChatInfoActivity extends AppCompatActivity {
         binding = ActivityChatInfoBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 1. 获取数据
-        chatName = getIntent().getStringExtra("CHAT_NAME");
-        friendUsername = getIntent().getStringExtra("CHAT_USERNAME"); // 获取好友 username
+        // 1. 获取Intent参数
+        if (!getIntentData()) {
+            Toast.makeText(this, "参数错误", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
-        if (chatName == null) chatName = "用户";
-
-        // 2. 判断是否为群聊 (简单判断：如果名字里有"群"或者是"技术交流群")
-        // 在真实项目中，你应该传递一个 boolean isGroup = intent.getBooleanExtra(...)
-        boolean isGroup = chatName.contains("群") || chatName.contains("Group");
-
-        // 初始化 ViewModel
+        // 2. 初始化ViewModel
         viewModel = new ViewModelProvider(this).get(ChatInfoViewModel.class);
 
-        setupToolbar(chatName, isGroup);
-        setupMemberGrid(chatName, isGroup);
-        setupGroupOptions(chatName, isGroup);
-        setupCommonListeners();
+        // 3. 设置UI
+        setupToolbar();
+        setupMemberGrid();
+        setupListeners();
         observeViewModel();
+
+        // 4. 加载好友详细信息
+        loadFriendDetail();
     }
 
-    private void setupToolbar(String title, boolean isGroup) {
-        binding.toolbar.setTitle(title + (isGroup ? "(10)" : "")); // 群聊显示人数
+    /**
+     * [核心] 获取Intent传递的参数
+     */
+    private boolean getIntentData() {
+        friendId = getIntent().getIntExtra(EXTRA_FRIEND_ID, -1);
+        friendUsername = getIntent().getStringExtra(EXTRA_FRIEND_USERNAME);
+
+        Log.d(TAG, "接收参数: friendId=" + friendId + ", friendUsername=" + friendUsername);
+
+        // 参数校验
+        if (friendId == -1 || friendUsername == null || friendUsername.isEmpty()) {
+            Log.e(TAG, "参数校验失败");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * [核心] 加载好友详细信息
+     */
+    private void loadFriendDetail() {
+        // 从FriendRepository获取好友详情
+        // 这个接口会返回：nickname, friendRemark, avatarUrl等
+        viewModel.loadFriendDetail(friendUsername);
+    }
+
+    private void setupToolbar() {
+        // 初始显示username，等数据加载后更新
+        binding.toolbar.setTitle(friendUsername);
         binding.toolbar.setNavigationOnClickListener(v -> finish());
     }
 
-    private void setupMemberGrid(String remark, boolean isGroup) {
+    /**
+     * [核心] 设置成员网格（私聊时只显示对方）
+     */
+    private void setupMemberGrid() {
         List<ContactItem> members = new ArrayList<>();
 
-        if (isGroup) {
-            // --- 群聊模式：添加多个假数据 ---
-            members.add(new ContactItem(11,"1", "群主", null));
-            members.add(new ContactItem(22,"2", "管理员", null));
-            members.add(new ContactItem(33,"3", "小明", null));
-            members.add(new ContactItem(44,"4", "小红", null));
-            members.add(new ContactItem(55,"5", "小刚", null));
-            members.add(new ContactItem(66,"6", "张三", null));
-            members.add(new ContactItem(77,"7", "李四", null));
-            members.add(new ContactItem(88,"8", "王五", null));
-            members.add(new ContactItem(99,"9", "赵六", null));
-        } else {
-            // --- 私聊模式：只添加对方 ---
-            members.add(new ContactItem(1,"id", remark, null));
-        }
+        // 暂时添加一个占位数据，等待加载完成后更新
+        members.add(new ContactItem(friendId, friendUsername, "加载中...", null));
 
-        // 初始化 Adapter
         memberAdapter = new ChatMemberAdapter(members);
-
-        // 设置 RecyclerView 为 5 列网格
         binding.rvMemberList.setLayoutManager(new GridLayoutManager(this, 5));
+        binding.rvMemberList.setAdapter(memberAdapter);
+
+        // 隐藏群聊相关选项
+        binding.groupOptionsContainer.setVisibility(View.GONE);
+    }
+
+    private void setupListeners() {
+        // 查找聊天记录
+        binding.rowSearchHistory.setOnClickListener(v -> {
+            Toast.makeText(this, "查找聊天记录功能开发中", Toast.LENGTH_SHORT).show();
+            // TODO: 跳转到搜索聊天记录页面
+        });
+
+        // 清空聊天记录
+        binding.rowClearHistory.setOnClickListener(v -> {
+            showClearHistoryDialog();
+        });
+
+        // 修改备注
+        binding.rowRemarkFriend.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EditProfileActivity.class);
+            intent.putExtra("EXTRA_TITLE", "修改备注");
+            intent.putExtra("EXTRA_VALUE", currentDisplayName);
+            intent.putExtra(EditProfileActivity.EXTRA_UPDATE_TYPE, EditProfileActivity.UPDATE_TYPE_FRIEND_REMARK);
+            intent.putExtra("EXTRA_FRIEND_USERNAME", friendUsername);
+            startActivity(intent);
+        });
+
+        // 删除好友
+        binding.tvDeleteFriend.setOnClickListener(v -> {
+            showDeleteFriendDialog();
+        });
+    }
+
+    /**
+     * [核心] 观察ViewModel数据变化
+     */
+    private void observeViewModel() {
+        // 观察好友详情加载结果
+        viewModel.getFriendDetailResult().observe(this, result -> {
+            if (result.error != null) {
+                Log.e(TAG, "加载好友详情失败: " + result.error.getMessage());
+                Toast.makeText(this, "加载失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
+            } else if (result.data != null) {
+                // 成功加载好友信息
+                updateUIWithFriendDetail(result.data);
+            }
+        });
+
+        // 观察删除好友结果
+        viewModel.getDeleteFriendResult().observe(this, result -> {
+            if (result.error != null) {
+                Toast.makeText(this, "删除失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "已删除好友", Toast.LENGTH_SHORT).show();
+
+                // 删除成功后，关闭当前页面并返回结果
+                setResult(RESULT_OK);
+                finish();
+            }
+        });
+    }
+
+    /**
+     * [核心] 用好友详情更新UI
+     */
+    private void updateUIWithFriendDetail(com.example.minichat.data.model.response.FriendDetailResponse friendDetail) {
+        // 获取显示名称（优先备注，其次昵称）
+        currentDisplayName = friendDetail.getDisplayName();
+        currentAvatarUrl = friendDetail.getAvatarUrl();
+
+        Log.d(TAG, "更新UI: displayName=" + currentDisplayName + ", avatarUrl=" + currentAvatarUrl);
+
+        // 更新标题
+        binding.toolbar.setTitle(currentDisplayName);
+
+        // 更新成员列表
+        List<ContactItem> members = new ArrayList<>();
+        members.add(new ContactItem(friendId, friendUsername, currentDisplayName, currentAvatarUrl));
+
+        // 重新设置适配器数据
+        memberAdapter = new ChatMemberAdapter(members);
         binding.rvMemberList.setAdapter(memberAdapter);
     }
 
-    private void setupGroupOptions(String chatName, boolean isGroup) {
-        if (isGroup) {
-            // 如果是群聊，显示群管理选项
-            binding.groupOptionsContainer.setVisibility(View.VISIBLE);
-            binding.tvGroupNameValue.setText(chatName);
-            binding.tvDeleteFriend.setText("退出群聊");
-
-            // 点击群聊名称
-            binding.rowGroupName.setOnClickListener(v -> Toast.makeText(this, "修改群聊名称", Toast.LENGTH_SHORT).show());
-
-            // 点击群二维码
-            binding.rowGroupQr.setOnClickListener(v -> Toast.makeText(this, "查看群二维码", Toast.LENGTH_SHORT).show());
-        } else {
-            // 私聊则隐藏
-            binding.groupOptionsContainer.setVisibility(View.GONE);
-        }
+    /**
+     * [新增] 显示清空聊天记录确认对话框
+     */
+    private void showClearHistoryDialog() {
+        new AlertDialog.Builder(this).setTitle("清空聊天记录").setMessage("确定要清空与 " + currentDisplayName + " 的聊天记录吗？").setPositiveButton("清空", (dialog, which) -> {
+            // TODO: 调用ViewModel清空聊天记录
+            Toast.makeText(this, "清空聊天记录功能开发中", Toast.LENGTH_SHORT).show();
+        }).setNegativeButton("取消", null).show();
     }
 
-    private void setupCommonListeners() {
-        binding.rowSearchHistory.setOnClickListener(v -> {
-            Toast.makeText(this, "点击了查找聊天记录", Toast.LENGTH_SHORT).show();
-        });
-
-        binding.rowClearHistory.setOnClickListener(v -> {
-            Toast.makeText(this, "点击了清空聊天记录", Toast.LENGTH_SHORT).show();
-        });
-        binding.rowRemarkFriend.setOnClickListener(v -> {
-            // 跳转到 EditProfileActivity 来修改备注
-            android.content.Intent intent = new android.content.Intent(this, EditProfileActivity.class);
-            intent.putExtra("EXTRA_TITLE", "修改备注");
-            intent.putExtra("EXTRA_VALUE", chatName);
-            intent.putExtra(EditProfileActivity.EXTRA_UPDATE_TYPE, EditProfileActivity.UPDATE_TYPE_FRIEND_REMARK); // 使用常量
-            intent.putExtra("EXTRA_FRIEND_USERNAME", friendUsername); // 新增：好友用户名
-            startActivity(intent);
-        });
-        binding.tvDeleteFriend.setOnClickListener(v -> {
-            if (friendUsername != null) {
-                viewModel.deleteFriend(friendUsername);
-            } else {
-                Toast.makeText(this, "无法获取好友信息", Toast.LENGTH_SHORT).show();
-            }
-        });
+    /**
+     * [新增] 显示删除好友确认对话框
+     */
+    private void showDeleteFriendDialog() {
+        new AlertDialog.Builder(this).setTitle("删除好友").setMessage("确定要删除好友 " + currentDisplayName + " 吗？\n删除后将同时清空聊天记录。").setPositiveButton("删除", (dialog, which) -> {
+            // 调用ViewModel删除好友
+            viewModel.deleteFriend(friendUsername);
+        }).setNegativeButton("取消", null).show();
     }
 
-    private void observeViewModel() {
-        viewModel.getDeleteFriendResult().observe(this, result -> {
-            if (result.error != null) {
-                Toast.makeText(this, "删除好友失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "好友已删除", Toast.LENGTH_SHORT).show();
-                finish(); // 删除成功后关闭当前页面
-            }
-        });
+    /**
+     * [重写] 从EditProfileActivity返回时刷新数据
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 重新加载好友信息，以获取最新的备注
+        loadFriendDetail();
     }
 }

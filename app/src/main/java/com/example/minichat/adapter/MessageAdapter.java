@@ -3,6 +3,7 @@ package com.example.minichat.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.minichat.R;
 import com.example.minichat.data.local.MessageEntity; // [导入] 我们的数据库实体
+import com.example.minichat.utils.UserDisplayUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +27,17 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private static final int VIEW_TYPE_RECEIVED = 2;
 
     private List<MessageEntity> messages = new ArrayList<>();
+    private int myUserId;
 
+    public MessageAdapter(int myUserId) {
+        this.myUserId = myUserId;
+    }
     // 2. [核心] 根据 senderId 判断布局
     @Override
     public int getItemViewType(int position) {
         MessageEntity message = messages.get(position);
         // (这是我们之前在 ChatViewModel 中约定的)
-        if ("me".equals(message.senderId)) {
+        if (message.senderId != null && message.senderId == myUserId) {
             return VIEW_TYPE_SENT;
         } else {
             return VIEW_TYPE_RECEIVED;
@@ -77,25 +83,53 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     // --- 两个 ViewHolder ---
 
+    // --- 发送消息的ViewHolder ---
     static class SentMessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageContent;
+        ImageView avatarView;
+
         public SentMessageViewHolder(@NonNull View itemView) {
             super(itemView);
             messageContent = itemView.findViewById(R.id.tv_message_content);
+            avatarView = itemView.findViewById(R.id.iv_avatar_sent);
         }
+
         void bind(MessageEntity message) {
             messageContent.setText(message.content);
+
+            // [核心] 加载发送者（我）的头像
+            if (message.senderAvatarUrl != null) {
+                UserDisplayUtils.loadAvatar(
+                        itemView.getContext(),
+                        message.senderAvatarUrl,
+                        avatarView
+                );
+            }
         }
     }
 
+    // --- 接收消息的ViewHolder ---
     static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder {
         TextView messageContent;
+        ImageView avatarView;
+
         public ReceivedMessageViewHolder(@NonNull View itemView) {
             super(itemView);
             messageContent = itemView.findViewById(R.id.tv_message_content);
+            avatarView = itemView.findViewById(R.id.iv_avatar_received);
         }
+
         void bind(MessageEntity message) {
             messageContent.setText(message.content);
+
+            // [核心] 加载发送者（对方）的头像
+            if (message.senderAvatarUrl != null) {
+                UserDisplayUtils.loadAvatar(
+                        itemView.getContext(),
+                        message.senderAvatarUrl,
+                        avatarView
+                );
+            }
         }
     }
 }
