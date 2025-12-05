@@ -22,7 +22,7 @@ public class WebSocketManager {
     private final Gson gson = new Gson();
 
     // 🔥 关键修改：使用 ws:// 协议（不是 http://）
-    private static final String WS_URL = "ws://192.168.1.154:8080/ws/stomp";
+    private static final String WS_URL = "ws://192.168.1.143:8080/ws/stomp";
 
     public interface OnMessageReceivedListener {
         void onMessageReceived(ChatMessage message);

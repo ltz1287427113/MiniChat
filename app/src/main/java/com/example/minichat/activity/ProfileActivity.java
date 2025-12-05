@@ -93,35 +93,31 @@ public class ProfileActivity extends AppCompatActivity {
      * 为“头像”、“名字” 等所有行添加点击监听器。
      */
     private void setupClickListeners() {
-
-        // [注释] 点击“头像”行
+        // [注释] 点击"头像"行
         binding.rowAvatar.setOnClickListener(v -> showImagePickerInfo());
 
-        // [注释] 点击“名字”行
+        // [注释] 点击"名字"行
         binding.rowName.setOnClickListener(v -> {
-            // (获取当前显示的名字)
             String currentName = binding.tvNameValue.getText().toString();
-            // (启动通用的编辑页)
             launchEditor("修改名字", currentName);
         });
 
-        // [注释] 点击“邮箱”行 (替换了“手机号”)
+        // [注释] 点击"邮箱"行
         binding.rowEmail.setOnClickListener(v -> {
-            // (获取当前显示的邮箱)
             String currentEmail = binding.tvEmailValue.getText().toString();
-            // (启动通用的编辑页)
             Toast.makeText(this, "邮箱暂不支持修改", Toast.LENGTH_SHORT).show();
         });
 
-        // [注释] 点击“微信号”行
+        // [注释] 点击"微信号"行
         binding.rowWechatId.setOnClickListener(v -> {
             Toast.makeText(this, "微信号不支持修改", Toast.LENGTH_SHORT).show();
         });
 
-        // [注释] 点击“我的二维码”行
+        // [注释] 点击"我的二维码"行 - 新增功能
         binding.rowQrCode.setOnClickListener(v -> {
-            Toast.makeText(this, "点击了 我的二维码", Toast.LENGTH_SHORT).show();
-            // TODO: 启动 MyQrCodeActivity (这是一个新页面，我们稍后做)
+            // 跳转到二维码页面
+            Intent intent = new Intent(this, MyQrCodeActivity.class);
+            startActivity(intent);
         });
     }
 

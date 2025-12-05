@@ -66,8 +66,13 @@ dependencies {
     // RxJava (STOMP 库依赖它)
     implementation libs.rxjava
     implementation libs.rxandroid
-    // Stomp协议库
-//    implementation libs.stomp.protocol.android
     // SockJS客户端
     implementation libs.java.websocket
+    // ZXing 二维码库
+    implementation libs.core
+    implementation libs.zxing.android.embedded
+    // CameraX (用于扫一扫)
+    implementation libs.camera.camera2
+    implementation libs.androidx.camera.lifecycle
+    implementation libs.androidx.camera.view
 }

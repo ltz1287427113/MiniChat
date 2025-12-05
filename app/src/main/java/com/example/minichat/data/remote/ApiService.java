@@ -2,16 +2,19 @@ package com.example.minichat.data.remote;
 
 import com.example.minichat.data.model.request.AddFriendRequest;
 import com.example.minichat.data.model.request.HandleFriendApplicationRequest;
+import com.example.minichat.data.model.request.ScanRequest;
 import com.example.minichat.data.model.request.UpdateFriendremarkRequest;
 import com.example.minichat.data.model.request.UserUpdateRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
 import com.example.minichat.data.model.response.FriendDetailResponse;
 import com.example.minichat.data.model.response.FriendListGroupedResponse;
+import com.example.minichat.data.model.response.FriendQrcodeResponse;
 import com.example.minichat.data.model.response.JwtResponse;
 import com.example.minichat.data.model.response.ResponseMessage;
 import com.example.minichat.data.model.request.SendCodeRequest;
 import com.example.minichat.data.model.request.UserLoginRequest;
 import com.example.minichat.data.model.request.UserRegisterRequest;
+import com.example.minichat.data.model.response.ScanResponse;
 import com.example.minichat.data.model.response.StrangerResponse;
 import com.example.minichat.data.model.response.UserUpdateResponse;
 
@@ -52,6 +55,14 @@ public interface ApiService {
     @Multipart
     @POST("user/updateAvatar")
     Call<ResponseMessage<UserUpdateResponse>> updateAvatar(@Part MultipartBody.Part avatar);
+
+    // 生成好友二维码
+    @GET("user/friend/qrcode")
+    Call<ResponseMessage<FriendQrcodeResponse>> generateQrCode();
+
+    // 扫描二维码
+    @POST("api/qrcode/scan")
+    Call<ResponseMessage<ScanResponse>> scanQrcode(@Body ScanRequest request);
 
     // 搜索陌生人
     @GET("friendApplication/searchStranger/{usernameOrEmail}")

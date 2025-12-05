@@ -145,14 +145,13 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
 
         if (itemId == R.id.menu_scan) {
-            Toast.makeText(this, "扫一扫", Toast.LENGTH_SHORT).show();
+            // 跳转到扫一扫页面
+            Intent intent = new Intent(this, ScanQrCodeActivity.class);
+            startActivity(intent);
             return true;
         } else if (itemId == R.id.menu_add_friend) {
-
-            // [修改这里] 跳转到 AddFriendActivity
             Intent intent = new Intent(this, com.example.minichat.activity.AddFriendActivity.class);
             startActivity(intent);
-
             return true;
         } else if (itemId == R.id.menu_create_group) {
             Intent intent = new Intent(this, com.example.minichat.activity.CreateGroupChatActivity.class);

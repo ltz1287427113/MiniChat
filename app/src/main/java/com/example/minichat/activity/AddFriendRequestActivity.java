@@ -18,7 +18,7 @@ public class AddFriendRequestActivity extends AppCompatActivity {
     private AddFriendRequestViewModel viewModel;
     private String targetUsername;
     private String targetNickname;
-
+    private boolean fromQrcode; // 是否来自二维码扫描
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,17 +38,34 @@ public class AddFriendRequestActivity extends AppCompatActivity {
     private void getIntentData() {
         targetUsername = getIntent().getStringExtra("username");
         targetNickname = getIntent().getStringExtra("nickname");
+        fromQrcode = getIntent().getBooleanExtra("from_qrcode", false);
+
+        Log.d("AddFriendRequest", "获取Intent数据: username=" + targetUsername + ", nickname=" + targetNickname + ", fromQrcode=" + fromQrcode);
     }
 
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> finish());
+
+        // 如果是从二维码来的，修改标题
+        if (fromQrcode) {
+            binding.toolbar.setTitle("扫码添加好友");
+        }
     }
 
     private void setupViews() {
         // 设置默认的打招呼内容
-        binding.etGreeting.setText("我是" +(TextUtils.isEmpty(SpUtils.getUser(this).getUsername()) ? "" : SpUtils.getUser(this).getUsername()));
+        String currentUsername = SpUtils.getUser(this).getUsername();
+        String greeting = "我是" + (TextUtils.isEmpty(currentUsername) ? "" : currentUsername);
+        binding.etGreeting.setText(greeting);
+
         // 设置默认的备注内容
-        binding.etRemark.setText((TextUtils.isEmpty(targetNickname) ? "" : targetNickname));
+        String remark = TextUtils.isEmpty(targetNickname) ? "" : targetNickname;
+        binding.etRemark.setText(remark);
+
+        // 如果是从二维码来的，可以添加提示
+        if (fromQrcode) {
+            Log.d("AddFriendRequest", "来自二维码扫描，目标用户: " + targetNickname);
+        }
     }
 
     private void setupListeners() {
@@ -58,6 +75,12 @@ public class AddFriendRequestActivity extends AppCompatActivity {
 
             if (TextUtils.isEmpty(targetUsername)) {
                 Toast.makeText(this, "用户信息错误，无法发送请求", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // 验证必填项
+            if (TextUtils.isEmpty(greeting)) {
+                Toast.makeText(this, "请输入打招呼内容", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -76,7 +99,8 @@ public class AddFriendRequestActivity extends AppCompatActivity {
                 binding.btnSend.setEnabled(true);
                 binding.btnSend.setText("发送");
             } else {
-                Toast.makeText(this, "好友请求已发送！", Toast.LENGTH_SHORT).show();
+                String successMsg = fromQrcode ? "好友请求已发送！" : "好友请求已发送！";
+                Toast.makeText(this, successMsg, Toast.LENGTH_SHORT).show();
                 finish();
             }
         });

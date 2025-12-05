@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.example.minichat.R;
 import com.example.minichat.activity.ProfileActivity;
+import com.example.minichat.activity.ScanQrCodeActivity;
 import com.example.minichat.activity.SettingsActivity;
 import com.example.minichat.data.model.response.UserLoginResponse;
 import com.example.minichat.databinding.FragmentMeBinding; // [新导入]
@@ -41,17 +42,21 @@ public class MeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // 3.  为“个人信息”区域 添加点击事件
+        // 3. 为"个人信息"区域 添加点击事件
         binding.profileBlock.setOnClickListener(v -> {
-            // [注释] 启动我们新创建的 ProfileActivity
             Intent intent = new Intent(requireActivity(), ProfileActivity.class);
             startActivity(intent);
         });
 
-        // 4. [新] 为“设置”按钮 添加点击事件
+        // 4. [新] 为"设置"按钮 添加点击事件
         binding.settingsBlock.setOnClickListener(v -> {
-            // [注释] 启动我们新创建的 SettingsActivity
             Intent intent = new Intent(requireActivity(), SettingsActivity.class);
+            startActivity(intent);
+        });
+
+        // 5. [新增] 为二维码图标添加点击事件 - 扫一扫功能
+        binding.ivQrCode.setOnClickListener(v -> {
+            Intent intent = new Intent(requireActivity(), ScanQrCodeActivity.class);
             startActivity(intent);
         });
     }

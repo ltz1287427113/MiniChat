@@ -5,6 +5,23 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+    <!-- 相机权限 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        tools:ignore="ScopedStorage" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- 相机功能声明（可选，但推荐） -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false"
+        tools:ignore="DuplicateUsesFeature" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -23,6 +40,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MiniChat">
+        <activity
+            android:name=".activity.ScanQrCodeActivity"
+            android:exported="false"
+            android:screenOrientation="fullSensor"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".activity.MyQrCodeActivity"
+            android:exported="false"
+            android:screenOrientation="fullSensor" />
         <activity
             android:name=".activity.CreateGroupChatActivity"
             android:exported="false" />

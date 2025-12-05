@@ -6,11 +6,13 @@ import android.util.Log;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.minichat.data.model.request.AddFriendRequest;
+import com.example.minichat.data.model.request.ScanRequest;
 import com.example.minichat.data.model.request.UpdateFriendremarkRequest;
 import com.example.minichat.data.model.response.ApplicationResponse;
 import com.example.minichat.data.model.response.FriendDetailResponse;
 import com.example.minichat.data.model.response.FriendListGroupedResponse;
 import com.example.minichat.data.model.response.ResponseMessage;
+import com.example.minichat.data.model.response.ScanResponse;
 import com.example.minichat.data.model.response.StrangerResponse;
 import com.example.minichat.data.remote.ApiClient;
 import com.example.minichat.data.remote.ApiService;
@@ -277,6 +279,38 @@ public class FriendRepository {
             @Override
             public void onFailure(Call<ResponseMessage<String>> call, Throwable t) {
                 resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
+            }
+        });
+    }
+
+    /**
+     * 扫描二维码
+     */
+    public void scanQrcode(String content, int currentUserId, String message, String remark,
+                           MutableLiveData<Result<ScanResponse>> resultLiveData) {
+        ScanRequest request = new ScanRequest(content, currentUserId, message, remark);
+
+        apiService.scanQrcode(request).enqueue(new Callback<ResponseMessage<ScanResponse>>() {
+            @Override
+            public void onResponse(Call<ResponseMessage<ScanResponse>> call,
+                                   Response<ResponseMessage<ScanResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        resultLiveData.postValue(Result.success(response.body().getData()));
+                    } else {
+                        resultLiveData.postValue(Result.failure(
+                                new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    resultLiveData.postValue(Result.failure(
+                            new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<ScanResponse>> call, Throwable t) {
+                resultLiveData.postValue(Result.failure(
+                        new Exception("网络错误: " + t.getMessage())));
             }
         });
     }

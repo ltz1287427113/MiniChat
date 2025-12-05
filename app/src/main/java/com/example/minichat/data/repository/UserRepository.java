@@ -4,6 +4,7 @@ import android.content.Context;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.minichat.data.model.request.UserUpdateRequest;
+import com.example.minichat.data.model.response.FriendQrcodeResponse;
 import com.example.minichat.data.model.response.ResponseMessage;
 import com.example.minichat.data.model.response.UserLoginResponse;
 import com.example.minichat.data.model.response.UserUpdateResponse;
@@ -110,6 +111,35 @@ public class UserRepository {
         public void onFailure(Call<ResponseMessage<UserUpdateResponse>> call, Throwable t) {
             resultLiveData.postValue("网络错误: " + t.getMessage());
         }
+    }
+
+    /**
+     * 生成二维码
+     */
+    public void generateQrCode(MutableLiveData<AuthRepository.Result<FriendQrcodeResponse>> resultLiveData) {
+        apiService.generateQrCode().enqueue(new Callback<ResponseMessage<FriendQrcodeResponse>>() {
+            @Override
+            public void onResponse(Call<ResponseMessage<FriendQrcodeResponse>> call,
+                                   Response<ResponseMessage<FriendQrcodeResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().isSuccess()) {
+                        resultLiveData.postValue(AuthRepository.Result.success(response.body().getData()));
+                    } else {
+                        resultLiveData.postValue(AuthRepository.Result.failure(
+                                new Exception(response.body().getMessage())));
+                    }
+                } else {
+                    resultLiveData.postValue(AuthRepository.Result.failure(
+                            new Exception("请求失败: " + response.code())));
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseMessage<FriendQrcodeResponse>> call, Throwable t) {
+                resultLiveData.postValue(AuthRepository.Result.failure(
+                        new Exception("网络错误: " + t.getMessage())));
+            }
+        });
     }
 
     // 更新本地 SpUtils 数据

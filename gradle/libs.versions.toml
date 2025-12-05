@@ -1,5 +1,7 @@
 [versions]
 agp = "8.13.1"
+cameraCamera2 = "1.5.2"
+core = "3.5.4"
 glide = "5.0.5"
 javaWebsocket = "1.6.0"
 javaWebsocketVersion = "1.5.1"
@@ -19,11 +21,16 @@ rxandroid = "2.1.1"
 rxjava = "2.2.21"
 stompprotocolandroid = "1.6.6"
 stompProtocolAndroidVersion = "1.1.6"
+zxingAndroidEmbedded = "4.3.0"
 
 [libraries]
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraCamera2" }
+androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "cameraCamera2" }
+camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
 compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 converter-scalars = { module = "com.squareup.retrofit2:converter-scalars", version.ref = "retrofit" }
+core = { module = "com.google.zxing:core", version.ref = "core" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "javaWebsocket" }
 java-websocket-v151 = { module = "org.java-websocket:Java-WebSocket", version.ref = "javaWebsocketVersion" }
@@ -44,6 +51,7 @@ rxandroid = { module = "io.reactivex.rxjava2:rxandroid", version.ref = "rxandroi
 rxjava = { module = "io.reactivex.rxjava2:rxjava", version.ref = "rxjava" }
 stomp-protocol-android = { module = "com.github.naiksoftware:stomp-protocol-android", version.ref = "stompProtocolAndroidVersion" }
 stompprotocolandroid = { module = "com.github.NaikSoftware:StompProtocolAndroid", version.ref = "stompprotocolandroid" }
+zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
