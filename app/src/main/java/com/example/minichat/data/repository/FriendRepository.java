@@ -286,31 +286,26 @@ public class FriendRepository {
     /**
      * 扫描二维码
      */
-    public void scanQrcode(String content, int currentUserId, String message, String remark,
-                           MutableLiveData<Result<ScanResponse>> resultLiveData) {
+    public void scanQrcode(String content, int currentUserId, String message, String remark, MutableLiveData<Result<ScanResponse>> resultLiveData) {
         ScanRequest request = new ScanRequest(content, currentUserId, message, remark);
 
         apiService.scanQrcode(request).enqueue(new Callback<ResponseMessage<ScanResponse>>() {
             @Override
-            public void onResponse(Call<ResponseMessage<ScanResponse>> call,
-                                   Response<ResponseMessage<ScanResponse>> response) {
+            public void onResponse(Call<ResponseMessage<ScanResponse>> call, Response<ResponseMessage<ScanResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     if (response.body().isSuccess()) {
                         resultLiveData.postValue(Result.success(response.body().getData()));
                     } else {
-                        resultLiveData.postValue(Result.failure(
-                                new Exception(response.body().getMessage())));
+                        resultLiveData.postValue(Result.failure(new Exception(response.body().getMessage())));
                     }
                 } else {
-                    resultLiveData.postValue(Result.failure(
-                            new Exception("请求失败: " + response.code())));
+                    resultLiveData.postValue(Result.failure(new Exception("请求失败: " + response.code())));
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseMessage<ScanResponse>> call, Throwable t) {
-                resultLiveData.postValue(Result.failure(
-                        new Exception("网络错误: " + t.getMessage())));
+                resultLiveData.postValue(Result.failure(new Exception("网络错误: " + t.getMessage())));
             }
         });
     }

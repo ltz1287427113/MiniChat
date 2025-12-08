@@ -1,10 +1,12 @@
 package com.example.minichat.viewmodel;
 
 import android.app.Application;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
 import com.example.minichat.data.model.response.ScanResponse;
 import com.example.minichat.data.repository.AuthRepository;
 import com.example.minichat.data.repository.FriendRepository;

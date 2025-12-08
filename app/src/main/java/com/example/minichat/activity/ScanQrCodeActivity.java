@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -25,8 +26,8 @@ import java.util.List;
  * 扫一扫页面
  * 功能：
  * 1. 扫描二维码
- * 2. 调用后端接口验证二维码
- * 3. 跳转到 AddFriendRequestActivity 发送好友申请
+ * 2. 弹出对话框让用户输入验证信息
+ * 3. 调用后端接口发送好友申请
  */
 public class ScanQrCodeActivity extends AppCompatActivity {
 
@@ -35,8 +36,9 @@ public class ScanQrCodeActivity extends AppCompatActivity {
 
     private ActivityScanQrCodeBinding binding;
     private ScanViewModel viewModel;
-    private boolean hasScanned = false; // 防止重复扫描
+    private boolean hasScanned = false;
     private int myUserId;
+    private String scannedContent; // 保存扫描的内容
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +46,7 @@ public class ScanQrCodeActivity extends AppCompatActivity {
         binding = ActivityScanQrCodeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        // 获取当前用户ID
         myUserId = SpUtils.getUser(this).getUserId();
-
-        // 初始化ViewModel
         viewModel = new ViewModelProvider(this).get(ScanViewModel.class);
 
         setupToolbar();
@@ -61,15 +60,20 @@ public class ScanQrCodeActivity extends AppCompatActivity {
     }
 
     private void observeViewModel() {
-        // 观察扫码结果
         viewModel.getScanResult().observe(this, result -> {
             if (result.error != null) {
                 Log.e(TAG, "扫码失败: " + result.error.getMessage());
                 Toast.makeText(this, "扫码失败: " + result.error.getMessage(), Toast.LENGTH_SHORT).show();
-                hasScanned = false; // 允许重新扫描
-            } else if (result.data != null) {
-                // 扫码成功，跳转到添加好友页面
-                jumpToAddFriend(result.data);
+
+                // 恢复扫描状态
+                hasScanned = false;
+                if (binding.barcodeView != null) {
+                    binding.barcodeView.resume();
+                }
+            } else {
+                // TODO 扫码成功，跳转到AddFriendDetailedPageActivity，并传递好友信息
+
+                finish();
             }
         });
     }
@@ -87,18 +91,21 @@ public class ScanQrCodeActivity extends AppCompatActivity {
             @Override
             public void barcodeResult(BarcodeResult result) {
                 if (hasScanned) {
-                    return; // 已经扫描过了，忽略后续结果
+                    return;
                 }
 
                 if (result.getText() != null && !result.getText().isEmpty()) {
                     hasScanned = true;
-                    handleScanResult(result.getText());
+                    scannedContent = result.getText();
+                    binding.barcodeView.pause();
+
+                    // 显示对话框让用户输入验证信息
+                    showInputDialog();
                 }
             }
 
             @Override
             public void possibleResultPoints(List resultPoints) {
-                // 可以在这里显示扫描框的提示点
             }
         });
 
@@ -106,35 +113,11 @@ public class ScanQrCodeActivity extends AppCompatActivity {
     }
 
     /**
-     * 处理扫描结果
+     * 扫描二维码
      */
-    private void handleScanResult(String qrContent) {
-        Log.d(TAG, "扫描结果: " + qrContent);
-
-        // 暂停扫描
-        binding.barcodeView.pause();
-
-        // 准备默认的message和remark
-        String message = "我是 " + SpUtils.getUser(this).getUsername();
-        String remark = "";
-
-        // 调用后端接口验证二维码
-        viewModel.scanQrcode(qrContent, myUserId, message, remark);
-    }
-
-    /**
-     * 跳转到添加好友页面
-     */
-    private void jumpToAddFriend(com.example.minichat.data.model.response.ScanResponse scanResponse) {
-        Intent intent = new Intent(this, AddFriendRequestActivity.class);
-        intent.putExtra("username", scanResponse.getUsername());
-        intent.putExtra("nickname", scanResponse.getNickname());
-        intent.putExtra("from_qrcode", true);
-
-        Log.d(TAG, "跳转到添加好友页面: username=" + scanResponse.getUsername() + ", nickname=" + scanResponse.getNickname());
-
-        startActivity(intent);
-        finish(); // 关闭扫码页面
+    private void scanQrcode(String message, String remark) {
+        Log.d(TAG, "扫描二维码: content=" + scannedContent + ", message=" + message + ", remark=" + remark);
+        viewModel.scanQrcode(scannedContent, myUserId, message, remark);
     }
 
     @Override
